@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <!-- These arguments load the electric grippers, for example left_electric_gripper:=true -->
+  <arg name="right_electric_gripper" default="true"/>
+
+  <!-- Load the URDF into the ROS Parameter Server -->
+  <!-- This xacro will pull in sawyer.urdf.xacro, and right_end_effector.urdf.xacro
+       Note: if you set this to false, you MUST have set the robot_description prior
+             to launching sawyer_world -->
+  <arg name="load_robot_description" default="true"/>
+  <param if="$(arg load_robot_description)" name="robot_description"
+      command="$(find xacro)/xacro --inorder $(find sawyer_description)/urdf/sawyer.urdf.xacro gazebo:=true"/>
+
+  <!-- We resume the logic in empty_world.launch, changing the name of the world to be launched -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find sawyer_gazebo)/worlds/sawyer.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+  <!-- Load the software version into the ROS Parameter Server -->
+  <param name="manifest/robot_software/version/HLR_VERSION_STRING" value="5.2.0" />
+
+  <!-- Publish a static transform between the world and the base of the robot -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_world" args="0 0 0 0 0 0 1 world base" />
+
+  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+	args="-param robot_description -urdf -model sawyer
+              -J sawyer::right_j0 -0.272659
+              -J sawyer::right_j1 1.04701
+              -J sawyer::right_j2 -0.00123203
+              -J sawyer::right_j3 0.49262
+              -J sawyer::right_j4 -0.0806423
+              -J sawyer::right_j5 -0.0620532
+              -J sawyer::right_j6 0.0265941" />
+
+  <!-- ros_control sawyer launch file -->
+  <!-- include file="$(find sawyer_sim_hardware)/launch/sawyer_sdk_control.launch">
+      <arg name="right_electric_gripper" value="$(arg right_electric_gripper)"/>
+      <arg name="gui" value="$(arg gui)" />
+  </include -->
+
+</launch>
