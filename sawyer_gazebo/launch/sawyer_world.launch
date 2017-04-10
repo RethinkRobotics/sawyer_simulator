@@ -8,8 +8,8 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
-  <!-- These arguments load the electric grippers, for example left_electric_gripper:=true -->
-  <arg name="right_electric_gripper" default="true"/>
+  <!-- These arguments load the electric grippers, for example right_electric_gripper:=true -->
+  <arg name="right_electric_gripper" default="false"/>
 
   <!-- Load the URDF into the ROS Parameter Server -->
   <!-- This xacro will pull in sawyer.urdf.xacro, and right_end_effector.urdf.xacro
@@ -37,7 +37,7 @@
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-	args="-param robot_description -urdf -model sawyer
+	args="-param robot_description -urdf -z 0.93 -model sawyer
               -J sawyer::right_j0 -0.272659
               -J sawyer::right_j1 1.04701
               -J sawyer::right_j2 -0.00123203
