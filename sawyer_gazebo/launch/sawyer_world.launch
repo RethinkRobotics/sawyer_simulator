@@ -29,8 +29,8 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <!-- Load the software version into the ROS Parameter Server -->
-  <param name="manifest/robot_software/version/HLR_VERSION_STRING" value="5.2.0" />
+  <!-- Load Parameters to the ROS Parameter Server -->
+  <rosparam command="load" file="$(find sawyer_gazebo)/config/params.yaml" />
 
   <!-- Publish a static transform between the world and the base of the robot -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_world" args="0 0 0 0 0 0 1 world base" />

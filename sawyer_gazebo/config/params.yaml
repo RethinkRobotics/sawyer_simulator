@@ -1,0 +1,21 @@
+robot_config:
+    assembly_names: [head, right, torso]
+    camera_config:
+        head_camera: {cameraType: ienso_ethernet, power: torso_camera_power}
+        right_hand_camera: {cameraType: cognex, power: right_hand_camera_power}
+    head_config:
+        joint_names: [head_pan]
+        type: head
+    right_config:
+        accelerometer_names: [right_accelerometer]
+        end_effector_names: [right_gripper]
+        joint_names: [right_j0, right_j1, right_j2, right_j3, right_j4, right_j5, right_j6]
+        type: limb
+    torso_config:
+        joint_names: [torso_t0]
+        type: torso
+manifest:
+    robot_class: sawyer
+    robot_software:
+        version:
+            HLR_VERSION_STRING: 5.2.0.0
