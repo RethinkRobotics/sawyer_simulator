@@ -1,0 +1,23 @@
+robot:
+  # Publish all joint states -----------------------------------
+
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  # Sawyer SDK Controllers: Position --------------------------
+  right_joint_position_controller:
+    type: sawyer_sim_controllers/SawyerPositionController
+    topic: /robot/limb/right/joint_command
+    joints:
+    #   - right_j0
+    #   - right_j1
+    #gains:
+    #  right_j0: {p: 700, i: 0.01, d: 100}
+    #  right_j1: {p: 10000, i: 0.01, d: 100}
+      right_j0_controller:
+        joint: right_j0
+        pid: {p: 700,  i: 0.01, d: 100}
+      right_j1_controller:
+        joint: right_j1
+        pid: {p: 10000,  i: 100, d: 100}
