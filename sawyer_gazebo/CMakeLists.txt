@@ -6,8 +6,8 @@ find_package(catkin
     roscpp
     gazebo_ros
     gazebo_ros_control
-        std_msgs
-        intera_core_msgs
+    std_msgs
+    intera_core_msgs
 )
 
 # Depend on system install of Gazebo
