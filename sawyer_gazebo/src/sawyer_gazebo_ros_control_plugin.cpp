@@ -46,22 +46,22 @@ class SawyerGazeboRosControlPlugin : public gazebo_ros_control::GazeboRosControl
 {
 private:
     // mutex for re-entrant calls to modeCommandCallback
-    boost::mutex mtx_;
+    std::mutex mtx_;
     ros::Subscriber speed_ratio_sub_;
     ros::Subscriber joint_command_timeout_sub_;
     ros::Subscriber joint_command_sub_;
 
 public:
     void Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf) {
-        GazeboRosControlPlugin::Load(parent, sdf);
+      GazeboRosControlPlugin::Load(parent, sdf);
 
-        speed_ratio_sub_ = model_nh_.subscribe<std_msgs::Float64>("/robot/limb/right/set_speed_ratio", 1, &SawyerGazeboRosControlPlugin::speedRatioCallback, this);
-        joint_command_timeout_sub_ = model_nh_.subscribe<std_msgs::Float64>("/robot/limb/right/joint_command_timeout", 1, &SawyerGazeboRosControlPlugin::jointCommandTimeoutCallback, this);
-        joint_command_sub_ = model_nh_.subscribe<intera_core_msgs::JointCommand>("/robot/limb/right/joint_command", 1, &SawyerGazeboRosControlPlugin::jointCommandCallback, this);
+      speed_ratio_sub_ = model_nh_.subscribe<std_msgs::Float64>("/robot/limb/right/set_speed_ratio", 1, &SawyerGazeboRosControlPlugin::speedRatioCallback, this);
+      joint_command_timeout_sub_ = model_nh_.subscribe<std_msgs::Float64>("/robot/limb/right/joint_command_timeout", 1, &SawyerGazeboRosControlPlugin::jointCommandTimeoutCallback, this);
+      joint_command_sub_ = model_nh_.subscribe<intera_core_msgs::JointCommand>("/robot/limb/right/joint_command", 1, &SawyerGazeboRosControlPlugin::jointCommandCallback, this);
     }
 
     void speedRatioCallback(const std_msgs::Float64 msg) {
-        ROS_INFO_STREAM_NAMED("ros_control_plugin", "Data: " << msg.data);
+      ROS_INFO_STREAM_NAMED("ros_control_plugin", "Data: " << msg.data);
     }
 
     void jointCommandTimeoutCallback(const std_msgs::Float64 msg) {
@@ -70,7 +70,7 @@ public:
 
     void jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg) {
       // lock out other thread(s) which are getting called back via ros.
-      boost::lock_guard<boost::mutex> guard(mtx_);
+      std::lock_guard<std::mutex> guard(mtx_);
 
       std::vector<std::string> start_controllers;
       std::vector<std::string> stop_controllers;

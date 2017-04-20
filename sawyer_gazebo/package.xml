@@ -44,7 +44,6 @@
   <build_depend>libgazebo7-dev</build_depend>
   <build_depend>gazebo_ros</build_depend>
   <build_depend>gazebo_ros_control</build_depend>
-  <build_depend>sawyer_description</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>intera_core_msgs</build_depend>
 

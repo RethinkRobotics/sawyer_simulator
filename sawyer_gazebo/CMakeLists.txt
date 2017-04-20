@@ -14,7 +14,6 @@ find_package(catkin
 find_package(GAZEBO REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
-find_package(Boost REQUIRED COMPONENTS system)
 
 catkin_package(
   CATKIN_DEPENDS
@@ -28,7 +27,6 @@ link_directories(
 )
 
 include_directories(include
-  ${Boost_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
   ${GAZEBO_INCLUDE_DIRS}
 )
