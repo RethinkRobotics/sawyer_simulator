@@ -18,33 +18,33 @@
 #include <pluginlib/class_list_macros.h>
 
 namespace sawyer_sim_controllers {
-    bool SawyerPositionController::init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n){
-        if(!sawyer_sim_controllers::JointGroupPositionController::init(hw, n)) {
-            return false;
-        } else {
-          std::string topic_name;
-          if (n.getParam("topic", topic_name)) {
-            ros::NodeHandle nh("~");
-            sub_joint_command_ = nh.subscribe(topic_name, 1, &SawyerPositionController::jointCommandCB, this);
-          } else {
-            sub_joint_command_ = n.subscribe("joint_command", 1, &SawyerPositionController::jointCommandCB, this);
-          }
-        }
-        return true;
+  bool SawyerPositionController::init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n){
+    if(!sawyer_sim_controllers::JointGroupPositionController::init(hw, n)) {
+      return false;
+    } else {
+      std::string topic_name;
+      if (n.getParam("topic", topic_name)) {
+        ros::NodeHandle nh("~");
+        sub_joint_command_ = nh.subscribe(topic_name, 1, &SawyerPositionController::jointCommandCB, this);
+      } else {
+        sub_joint_command_ = n.subscribe("joint_command", 1, &SawyerPositionController::jointCommandCB, this);
+      }
     }
+    return true;
+  }
 
-    void SawyerPositionController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
-        std::vector<Command> commands;
+  void SawyerPositionController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
+    std::vector<Command> commands;
 
-        for (int i = 0; i < msg->names.size(); i++) {
-          Command cmd = Command();
-          cmd.name_ = msg->names[i];
-          cmd.position_ = msg->position[i];
-          commands.push_back(cmd);
-        }
-        position_command_buffer_.writeFromNonRT(commands);
-        new_command_ = true;
+    for (int i = 0; i < msg->names.size(); i++) {
+      Command cmd = Command();
+      cmd.name_ = msg->names[i];
+      cmd.position_ = msg->position[i];
+      commands.push_back(cmd);
     }
+    position_command_buffer_.writeFromNonRT(commands);
+    new_command_ = true;
+  }
 
 }
 

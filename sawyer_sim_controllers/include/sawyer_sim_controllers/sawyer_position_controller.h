@@ -25,17 +25,17 @@
 
 namespace sawyer_sim_controllers
 {
-    class SawyerPositionController : public sawyer_sim_controllers::JointGroupPositionController
-    {
-    public:
-        virtual ~SawyerPositionController() {sub_joint_command_.shutdown();}
-        virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
+  class SawyerPositionController : public sawyer_sim_controllers::JointGroupPositionController
+  {
+  public:
+    virtual ~SawyerPositionController() {sub_joint_command_.shutdown();}
+    virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
 
-    private:
-        ros::Subscriber sub_joint_command_;
+  private:
+    ros::Subscriber sub_joint_command_;
 
-        void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
-    };
+    void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
+  };
 }
 
 #endif
