@@ -30,6 +30,7 @@
   </include>
 
   <!-- Load Parameters to the ROS Parameter Server -->
+  <rosparam command="load" file="$(find sawyer_description)/params/named_poses.yaml" />
   <rosparam command="load" file="$(find sawyer_gazebo)/config/params.yaml" />
 
   <!-- Publish a static transform between the world and the base of the robot -->
