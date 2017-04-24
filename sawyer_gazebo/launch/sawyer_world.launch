@@ -48,9 +48,9 @@
               -J sawyer::right_j6 0.0265941" />
 
   <!-- ros_control sawyer launch file -->
-  <!-- include file="$(find sawyer_sim_hardware)/launch/sawyer_sdk_control.launch">
+  <include file="$(find sawyer_sim_hardware)/launch/sawyer_sdk_control.launch">
       <arg name="right_electric_gripper" value="$(arg right_electric_gripper)"/>
       <arg name="gui" value="$(arg gui)" />
-  </include -->
+  </include>
 
 </launch>
