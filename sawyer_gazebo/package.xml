@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>The sawyer_gazebo package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="imcmahon@todo.todo">imcmahon</maintainer>
@@ -40,20 +40,22 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>libgazebo7-dev</build_depend>
   <build_depend>gazebo_ros</build_depend>
   <build_depend>gazebo_ros_control</build_depend>
-  <build_depend>std_msgs</build_depend>
   <build_depend>intera_core_msgs</build_depend>
+  <build_depend>libgazebo7-dev</build_depend>
+  <build_depend>realtime_tools</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
 
-  <run_depend>roscpp</run_depend>
   <run_depend>gazebo</run_depend>
   <run_depend>gazebo_ros</run_depend>
   <run_depend>gazebo_ros_control</run_depend>
+  <run_depend>intera_core_msgs</run_depend>
+  <run_depend>realtime_tools</run_depend>
+  <run_depend>roscpp</run_depend>
   <run_depend>sawyer_description</run_depend>
   <run_depend>std_msgs</run_depend>
-  <run_depend>intera_core_msgs</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -3,21 +3,23 @@ project(sawyer_gazebo)
 
 find_package(catkin
   REQUIRED COMPONENTS
-    roscpp
     gazebo_ros
     gazebo_ros_control
-    std_msgs
     intera_core_msgs
+    realtime_tools
+    roscpp
+    std_msgs
 )
 
 # Depend on system install of Gazebo
 find_package(GAZEBO REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
-
 catkin_package(
   CATKIN_DEPENDS
   gazebo_ros_control
+  intera_core_msgs
+  realtime_tools
   roscpp
 )
 
