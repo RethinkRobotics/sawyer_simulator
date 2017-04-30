@@ -17,48 +17,21 @@
 #define _SAWYER_GAZEBO___SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_
 // Overload the default plugin
 #include <gazebo_ros_control/gazebo_ros_control_plugin.h>
-#include <realtime_tools/realtime_box.h>
-
-#include <intera_core_msgs/JointCommand.h>
-#include <intera_core_msgs/AssemblyState.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/Empty.h>
-#include <std_msgs/Bool.h>
+#include <sawyer_gazebo/assembly_interface.h>
+#include <sawyer_gazebo/controller_interface.h>
 
 
-namespace sawyer_gazebo_plugin {
+namespace sawyer_gazebo {
+
   class SawyerGazeboRosControlPlugin : public gazebo_ros_control::GazeboRosControlPlugin
   {
   private:
-    // mutex for re-entrant calls to modeCommandCallback
-    std::mutex mtx_;
-    ros::Subscriber speed_ratio_sub_;
-    ros::Subscriber joint_command_timeout_sub_;
-    ros::Subscriber joint_command_sub_;
+    AssemblyInterface assembly_interface_;
+    ControllerInterface controller_interface_;
 
-    bool is_enabled_;
-    bool is_stopped_;
-    ros::Publisher assembly_state_pub_;
-    ros::Subscriber assembly_enable_sub_;
-    ros::Subscriber assembly_stop_sub_;
-    ros::Subscriber assembly_reset_sub_;
-    ros::Timer assembly_state_timer_;
-    realtime_tools::RealtimeBox< std::shared_ptr<const intera_core_msgs::AssemblyState> > assembly_state_buffer_;
   protected:
     void Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf);
 
-    void speedRatioCallback(const std_msgs::Float64 msg);
-    void jointCommandTimeoutCallback(const std_msgs::Float64 msg);
-    void jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg);
-
-    /**
-     * Method to stop the robot and capture the source of the stop
-     */
-    void initAssembly(ros::NodeHandle& nh);
-    void updateAssembly(const ros::TimerEvent& e);
-    void callbackEnableAssembly(const std_msgs::Bool &msg);
-    void callbackStopAssembly(const std_msgs::Empty &msg);
-    void callbackResetAssembly(const std_msgs::Empty &msg);
 
   };
 }

@@ -39,6 +39,8 @@ include_directories(include
 
 add_library(sawyer_gazebo_ros_control
   src/sawyer_gazebo_ros_control_plugin.cpp
+  src/assembly_interface.cpp
+  src/controller_interface.cpp
 )
 
 target_link_libraries(sawyer_gazebo_ros_control
