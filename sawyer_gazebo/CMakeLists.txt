@@ -16,11 +16,15 @@ find_package(GAZEBO REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
 
 catkin_package(
-  CATKIN_DEPENDS
+ CATKIN_DEPENDS
   gazebo_ros_control
   intera_core_msgs
   realtime_tools
   roscpp
+ INCLUDE_DIRS
+  include
+ LIBRARIES
+  sawyer_robot_hw_sim
 )
 
 link_directories(
@@ -40,7 +44,12 @@ add_library(sawyer_gazebo_ros_control
 target_link_libraries(sawyer_gazebo_ros_control
   ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
-  gazebo_ros_control
+)
+
+add_library(sawyer_robot_hw_sim src/sawyer_robot_hw_sim.cpp)
+target_link_libraries(sawyer_robot_hw_sim
+  ${catkin_LIBRARIES}
+  ${GAZEBO_LIBRARIES}
 )
 
 add_dependencies(
@@ -49,8 +58,12 @@ add_dependencies(
 )
 
 install(
-  TARGETS sawyer_gazebo_ros_control
+  TARGETS sawyer_gazebo_ros_control sawyer_robot_hw_sim
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(FILES sawyer_robot_hw_sim_plugins.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(

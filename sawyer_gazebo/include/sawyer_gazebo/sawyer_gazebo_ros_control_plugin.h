@@ -13,11 +13,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **************************************************************************/
-#ifndef _GAZEBO_ROS_CONTROL___SAWYER_ROBOT_HW_SIM_H_
-#define _GAZEBO_ROS_CONTROL___SAWYER_ROBOT_HW_SIM_H_
+#ifndef _SAWYER_GAZEBO___SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_
+#define _SAWYER_GAZEBO___SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_
 // Overload the default plugin
 #include <gazebo_ros_control/gazebo_ros_control_plugin.h>
-
 #include <realtime_tools/realtime_box.h>
 
 #include <intera_core_msgs/JointCommand.h>
@@ -63,4 +62,4 @@ namespace sawyer_gazebo_plugin {
 
   };
 }
-#endif // #ifndef __GAZEBO_ROS_CONTROL_PLUGIN_SAWYER_ROBOT_HW_SIM_H_
+#endif // #ifndef __SAWYER_GAZEBO__SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_

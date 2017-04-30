@@ -60,8 +60,7 @@
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
     <gazebo plugin_path="${prefix}/lib" gazebo_media_path="${prefix}" />
-
+    <gazebo_ros_control plugin="${prefix}/sawyer_robot_hw_sim_plugins.xml"/>
   </export>
 </package>
