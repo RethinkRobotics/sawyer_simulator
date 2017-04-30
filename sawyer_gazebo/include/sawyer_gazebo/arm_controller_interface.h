@@ -13,8 +13,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **************************************************************************/
-#ifndef _SAWYER_GAZEBO___CONTROLLER_INTERFACE_H_
-#define _SAWYER_GAZEBO___CONTROLLER_INTERFACE_H_
+#ifndef _SAWYER_GAZEBO___ARM_CONTROLLER_INTERFACE_H_
+#define _SAWYER_GAZEBO___ARM_CONTROLLER_INTERFACE_H_
 
 #include <mutex>
 
@@ -26,7 +26,7 @@
 
 
 namespace sawyer_gazebo {
-  class ControllerInterface
+  class ArmControllerInterface
   {
   public:
     void init(ros::NodeHandle& nh, boost::shared_ptr<controller_manager::ControllerManager> controller_manager);
@@ -47,4 +47,4 @@ namespace sawyer_gazebo {
 
   };
 }
-#endif // #ifndef __SAWYER_GAZEBO__CONTROLLER_INTERFACE_H_
+#endif // #ifndef __SAWYER_GAZEBO__ARM_CONTROLLER_INTERFACE_H_

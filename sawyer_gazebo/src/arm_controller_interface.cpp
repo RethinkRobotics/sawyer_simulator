@@ -14,27 +14,27 @@
 * limitations under the License.
 **************************************************************************/
 
-#include <sawyer_gazebo/controller_interface.h>
+#include <sawyer_gazebo/arm_controller_interface.h>
 #include <controller_manager_msgs/SwitchController.h>
 
 namespace sawyer_gazebo {
 
-void ControllerInterface::init(ros::NodeHandle& nh, boost::shared_ptr<controller_manager::ControllerManager> controller_manager) {
+void ArmControllerInterface::init(ros::NodeHandle& nh, boost::shared_ptr<controller_manager::ControllerManager> controller_manager) {
   controller_manager_ = controller_manager;
-  speed_ratio_sub_ = nh.subscribe("limb/right/set_speed_ratio", 1, &ControllerInterface::speedRatioCallback, this);
-  joint_command_timeout_sub_ = nh.subscribe("limb/right/joint_command_timeout", 1, &ControllerInterface::jointCommandTimeoutCallback, this);
-  joint_command_sub_ = nh.subscribe("limb/right/joint_command", 1, &ControllerInterface::jointCommandCallback, this);
+  speed_ratio_sub_ = nh.subscribe("limb/right/set_speed_ratio", 1, &ArmControllerInterface::speedRatioCallback, this);
+  joint_command_timeout_sub_ = nh.subscribe("limb/right/joint_command_timeout", 1, &ArmControllerInterface::jointCommandTimeoutCallback, this);
+  joint_command_sub_ = nh.subscribe("limb/right/joint_command", 1, &ArmControllerInterface::jointCommandCallback, this);
 }
 
-void ControllerInterface::speedRatioCallback(const std_msgs::Float64 msg) {
+void ArmControllerInterface::speedRatioCallback(const std_msgs::Float64 msg) {
   ROS_INFO_STREAM_NAMED("ros_control_plugin", "Data: " << msg.data);
 }
 
-void ControllerInterface::jointCommandTimeoutCallback(const std_msgs::Float64 msg) {
+void ArmControllerInterface::jointCommandTimeoutCallback(const std_msgs::Float64 msg) {
   ROS_INFO_STREAM_NAMED("sawyer_control_plugin", "Joint command timeout: " << msg.data);
 }
 
-void ControllerInterface::jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg) {
+void ArmControllerInterface::jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg) {
   // lock out other thread(s) which are getting called back via ros.
   std::lock_guard<std::mutex> guard(mtx_);
 
