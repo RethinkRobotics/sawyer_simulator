@@ -19,6 +19,8 @@
 namespace sawyer_gazebo
 {
 
+const double SawyerRobotHWSim::BRAKE_VALUE = 10000.0;
+
 bool SawyerRobotHWSim::initSim(
   const std::string& robot_namespace,
   ros::NodeHandle model_nh,
@@ -26,22 +28,43 @@ bool SawyerRobotHWSim::initSim(
   const urdf::Model *const urdf_model,
   std::vector<transmission_interface::TransmissionInfo> transmissions)
 {
-  bool ret = gazebo_ros_control::DefaultRobotHWSim::initSim(robot_namespace, model_nh, parent_model, urdf_model, transmissions);
-  joint_damping_.resize(gazebo_ros_control::DefaultRobotHWSim::n_dof_);
+  bool ret = gazebo_ros_control::DefaultRobotHWSim::initSim(robot_namespace,
+                           model_nh, parent_model, urdf_model, transmissions);
+  SawyerRobotHWSim::initBrakes();
+  return ret;
+}
+
+void SawyerRobotHWSim::initBrakes()
+{
+  joint_enable_.resize(gazebo_ros_control::DefaultRobotHWSim::n_dof_);
+  joint_disable_.resize(gazebo_ros_control::DefaultRobotHWSim::n_dof_);
   for(std::size_t i = 0; i != gazebo_ros_control::DefaultRobotHWSim::sim_joints_.size(); ++i)
   {
-    joint_damping_[i] = gazebo_ros_control::DefaultRobotHWSim::sim_joints_[i]->GetDamping(0);
+    joint_enable_[i] = gazebo_ros_control::DefaultRobotHWSim::sim_joints_[i]->GetDamping(0);
+    if (joint_names_[i] == "right_j1" ||
+        joint_names_[i] == "right_j2" ||
+        joint_names_[i] == "right_j3"){
+      // Add brakes to j1 and j2
+      joint_disable_[i] = BRAKE_VALUE;
+    }
+    else{
+      joint_disable_[i] = joint_enable_[i];
+    }
   }
-  return ret;
+}
+
+void SawyerRobotHWSim::brakesActive(const bool active)
+{
+  for(std::size_t i = 0; i != gazebo_ros_control::DefaultRobotHWSim::sim_joints_.size(); ++i)
+  {
+    gazebo_ros_control::DefaultRobotHWSim::sim_joints_[i]->SetDamping(0, (active ? joint_disable_[i] : joint_enable_[i]));
+  }
 }
 
 void SawyerRobotHWSim::eStopActive(const bool active)
 {
+  SawyerRobotHWSim::brakesActive(active);
   gazebo_ros_control::DefaultRobotHWSim::eStopActive(active);
-  for(std::size_t i = 0; i != gazebo_ros_control::DefaultRobotHWSim::sim_joints_.size(); ++i)
-  {
-    gazebo_ros_control::DefaultRobotHWSim::sim_joints_[i]->SetDamping(0, (active ? 100000 : joint_damping_[i]));
-  }
 }
 
 }

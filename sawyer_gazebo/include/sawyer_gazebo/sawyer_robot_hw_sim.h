@@ -37,8 +37,13 @@ public:
 
   virtual void eStopActive(const bool active);
 
+  virtual void brakesActive(const bool active);
+
 protected:
-  std::vector<double> joint_damping_;
+    void initBrakes();
+    std::vector<double> joint_enable_;
+    std::vector<double> joint_disable_;
+    static const double BRAKE_VALUE;
 };
 
 typedef std::shared_ptr<SawyerRobotHWSim> SawyerRobotHWSimPtr;
