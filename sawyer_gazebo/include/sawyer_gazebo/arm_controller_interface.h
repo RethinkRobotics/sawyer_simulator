@@ -29,21 +29,25 @@ namespace sawyer_gazebo {
   class ArmControllerInterface
   {
   public:
-    void init(ros::NodeHandle& nh, boost::shared_ptr<controller_manager::ControllerManager> controller_manager);
+    void init(ros::NodeHandle& nh, std::string side,
+         boost::shared_ptr<controller_manager::ControllerManager> controller_manager);
 
   private:
     // mutex for re-entrant calls to modeCommandCallback
     std::mutex mtx_;
+    int current_mode_;
+    std::string side_;
     ros::Subscriber speed_ratio_sub_;
     ros::Subscriber joint_command_timeout_sub_;
     ros::Subscriber joint_command_sub_;
     boost::shared_ptr<controller_manager::ControllerManager> controller_manager_;
 
   protected:
-
     void speedRatioCallback(const std_msgs::Float64 msg);
     void jointCommandTimeoutCallback(const std_msgs::Float64 msg);
     void jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg);
+    std::string getControllerString(std::string mode_str);
+
 
   };
 }

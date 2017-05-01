@@ -22,7 +22,7 @@ namespace sawyer_gazebo {
 void SawyerGazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf) {
   GazeboRosControlPlugin::Load(parent, sdf);
   assembly_interface_.init(model_nh_);
-  arm_controller_interface_.init(model_nh_, controller_manager_);
+  arm_controller_interface_.init(model_nh_, "right", controller_manager_);
 }
 
 // register the plugin with gazebo
