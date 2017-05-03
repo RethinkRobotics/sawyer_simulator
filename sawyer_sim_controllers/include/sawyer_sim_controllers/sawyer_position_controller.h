@@ -22,6 +22,7 @@
 #include <ros/node_handle.h>
 
 #include <control_toolbox/pid.h>
+#include <realtime_tools/realtime_box.h>
 
 namespace sawyer_sim_controllers
 {
@@ -33,7 +34,9 @@ namespace sawyer_sim_controllers
 
   private:
     ros::Subscriber sub_joint_command_;
-
+    ros::Subscriber sub_speed_ratio_;
+    realtime_tools::RealtimeBox< std::shared_ptr<const std_msgs::Float64> > speed_ratio_buffer_;
+    void speedRatioCallback(const std_msgs::Float64 msg);
     void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
   };
 }
