@@ -13,18 +13,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **************************************************************************/
-
+#ifndef _SAWYER_GAZEBO___SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_
+#define _SAWYER_GAZEBO___SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_
 // Overload the default plugin
-#include <sawyer_gazebo/sawyer_gazebo_ros_control_plugin.h>
+#include <gazebo_ros_control/gazebo_ros_control_plugin.h>
+#include <sawyer_gazebo/assembly_interface.h>
+#include <sawyer_gazebo/arm_controller_interface.h>
+
 
 namespace sawyer_gazebo {
 
-void SawyerGazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf) {
-  GazeboRosControlPlugin::Load(parent, sdf);
-  assembly_interface_.init(model_nh_);
-  arm_controller_interface_.init(model_nh_, "right", controller_manager_);
-}
+  class SawyerGazeboRosControlPlugin : public gazebo_ros_control::GazeboRosControlPlugin
+  {
+  private:
+    AssemblyInterface assembly_interface_;
+    ArmControllerInterface arm_controller_interface_;
 
-// register the plugin with gazebo
-GZ_REGISTER_MODEL_PLUGIN(SawyerGazeboRosControlPlugin);
+  protected:
+    void Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf);
+
+
+  };
 }
+#endif // #ifndef __SAWYER_GAZEBO__SAWYER_GAZEBO_ROS_CONTROL_PLUGIN_H_
