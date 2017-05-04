@@ -33,11 +33,16 @@ namespace sawyer_sim_controllers
     virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
 
   private:
+    typedef std::unique_ptr<std::vector<Command>> CommandsPtr;
     ros::Subscriber sub_joint_command_;
     ros::Subscriber sub_speed_ratio_;
     realtime_tools::RealtimeBox< std::shared_ptr<const std_msgs::Float64> > speed_ratio_buffer_;
     void speedRatioCallback(const std_msgs::Float64 msg);
     void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
+    CommandsPtr cmdTrajectoryMode(const intera_core_msgs::JointCommandConstPtr& msg);
+    CommandsPtr cmdPositionMode(const intera_core_msgs::JointCommandConstPtr& msg);
+
+
   };
 }
 

@@ -55,33 +55,77 @@ namespace sawyer_sim_controllers {
       speed_ratio->data = msg.data;
     }
     speed_ratio_buffer_.set(speed_ratio);
-    ROS_INFO_STREAM_NAMED("Speed Ratio Callback", "received " << msg.data);
   }
 
-  void SawyerPositionController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
-    // TODO: Guard against out of range, bad joints, and invalid commands
-    std::vector<Command> commands;
+  SawyerPositionController::CommandsPtr SawyerPositionController::cmdPositionMode(const intera_core_msgs::JointCommandConstPtr& msg) {
+    std::vector<double> delta_time(msg->names.size());
+    std::vector<double> current_position(msg->names.size());
+    double delta_time_max = 0.0;
+    // Determine the time required for the Joint that will take the longest to achieve goal
+    for (size_t i = 0; i < msg->names.size(); i++)
+    {
+      current_position[i] = position_controllers_[msg->names[i]]->joint_.getPosition();
+      delta_time[i] = std::abs(msg->position[i] - current_position[i]) /
+                   (position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity);
+      if (delta_time[i] > delta_time_max) {
+        delta_time_max = delta_time[i];
+      }
+    }
+    CommandsPtr commands(new std::vector<Command>());
     std::shared_ptr<const std_msgs::Float64> speed_ratio;
     speed_ratio_buffer_.get(speed_ratio);
-    for (int i = 0; i < msg->names.size(); i++) {
+    double velocity_direction;
+    // Command Joint Position and
+    // Command Velocity proportional to amount of time it will take the longest
+    // joint to achieve the position goal
+    for (size_t i = 0; i < msg->names.size(); i++) {
       Command cmd = Command();
       cmd.name_ = msg->names[i];
       cmd.position_ = msg->position[i];
-      if(msg->mode == intera_core_msgs::JointCommand::POSITION_MODE && speed_ratio){
-        // joint_velocity = speed_ratio * max joint velocity from urdf * direction of joint motion
-        cmd.velocity_ = speed_ratio->data * position_controllers_[cmd.name_]->joint_urdf_->limits->velocity *
-                          (cmd.position_ - position_controllers_[cmd.name_]->joint_.getPosition());
-        cmd.has_velocity_=true;
+      if (delta_time_max > 0.0)
+      {
+        velocity_direction = (cmd.position_ <  current_position[i]) ? -1.0 : 1.0;
+        if (std::abs(cmd.position_ - current_position[i]) < 0.01)
+        {
+          velocity_direction = 0.0;
+        }
+        cmd.velocity_ = speed_ratio->data * position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity *
+                        velocity_direction * delta_time[i] / delta_time_max;
+        cmd.has_velocity_ = true;
       }
-      else if(msg->mode == intera_core_msgs::JointCommand::TRAJECTORY_MODE &&
-              msg->position.size() == msg->velocity.size()){
-          cmd.velocity_ = msg->velocity[i];
-          cmd.has_velocity_=true;
-      }
-      commands.push_back(cmd);
+      commands->push_back(cmd);
     }
-    position_command_buffer_.writeFromNonRT(commands);
-    new_command_ = true;
+    return commands;
+  }
+
+  SawyerPositionController::CommandsPtr SawyerPositionController::cmdTrajectoryMode(const intera_core_msgs::JointCommandConstPtr& msg) {
+      CommandsPtr commands(new std::vector<Command>());
+      for (size_t i = 0; i < msg->names.size(); i++) {
+        Command cmd = Command();
+        cmd.name_ = msg->names[i];
+        cmd.position_ = msg->position[i];
+        cmd.velocity_ = msg->velocity[i];
+        cmd.has_velocity_=true;
+        /*cmd.acceleration_ = msg->acceleration[i];
+        cmd.has_acceleration_=true;*/ // TODO: Implement Feed Forward with Acceleration
+        commands->push_back(cmd);
+      }
+      return commands;
+  }
+
+  void SawyerPositionController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
+    CommandsPtr commands;
+    // TODO: Verify commands are valid (names of joints are correct, within URDF limits, lengths of command fields are the same)
+    if(msg->mode == intera_core_msgs::JointCommand::POSITION_MODE) {
+      commands = cmdPositionMode(msg);
+    }
+    else if(msg->mode == intera_core_msgs::JointCommand::TRAJECTORY_MODE) {
+      commands = cmdTrajectoryMode(msg);
+    }
+    if(commands.get()) {
+      position_command_buffer_.writeFromNonRT(*commands.get());
+      new_command_ = true;
+    }
   }
 
 }
