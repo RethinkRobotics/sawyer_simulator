@@ -17,6 +17,8 @@
 #ifndef SAWYER_POSITION_CONTROLLER_H
 #define SAWYER_POSITION_CONTROLLER_H
 
+#include <mutex>
+
 #include <sawyer_sim_controllers/joint_group_position_controller.h>
 #include <intera_core_msgs/JointCommand.h>
 #include <ros/node_handle.h>
@@ -33,6 +35,8 @@ namespace sawyer_sim_controllers
     virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
 
   private:
+    // mutex for re-entrant calls to modeCommandCallback
+    std::mutex mtx_;
     typedef std::unique_ptr<std::vector<Command>> CommandsPtr;
     ros::Subscriber sub_joint_command_;
     ros::Subscriber sub_speed_ratio_;

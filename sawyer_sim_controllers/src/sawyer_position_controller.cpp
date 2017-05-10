@@ -65,8 +65,13 @@ namespace sawyer_sim_controllers {
     for (size_t i = 0; i < msg->names.size(); i++)
     {
       current_position[i] = position_controllers_[msg->names[i]]->joint_.getPosition();
-      delta_time[i] = std::abs(msg->position[i] - current_position[i]) /
-                   (position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity);
+      if(position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity > 0){
+        delta_time[i] = std::abs(msg->position[i] - current_position[i]) /
+                     (position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity);
+      }
+      else {
+        delta_time[i] = 0.0;
+      }
       if (delta_time[i] > delta_time_max) {
         delta_time_max = delta_time[i];
       }
@@ -114,6 +119,8 @@ namespace sawyer_sim_controllers {
   }
 
   void SawyerPositionController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
+    // lock out other thread(s) which are getting called back via ros.
+    std::lock_guard<std::mutex> guard(mtx_);
     CommandsPtr commands;
     // TODO: Verify commands are valid (names of joints are correct, within URDF limits, lengths of command fields are the same)
     if(msg->mode == intera_core_msgs::JointCommand::POSITION_MODE) {
@@ -122,6 +129,7 @@ namespace sawyer_sim_controllers {
     else if(msg->mode == intera_core_msgs::JointCommand::TRAJECTORY_MODE) {
       commands = cmdTrajectoryMode(msg);
     }
+    // Only write the command if this is the correct command mode, with a valid CommandPtr
     if(commands.get()) {
       position_command_buffer_.writeFromNonRT(*commands.get());
       new_command_ = true;
