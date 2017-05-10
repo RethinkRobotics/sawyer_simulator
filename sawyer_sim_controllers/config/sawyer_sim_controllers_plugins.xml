@@ -8,6 +8,22 @@
         </description>
     </class>
 
+    <class name="sawyer_sim_controllers/SawyerVelocityController"
+           type="sawyer_sim_controllers::SawyerVelocityController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The SawyerPositionController tracks velocity commands for the entire Sawyer arm. It expects an EffortJointInterface type of hardware interface.
+        </description>
+    </class>
+
+    <class name="sawyer_sim_controllers/SawyerEffortController"
+           type="sawyer_sim_controllers::SawyerEffortController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The SawyerPositionController tracks effort commands for the entire Sawyer arm. It expects an EffortJointInterface type of hardware interface.
+        </description>
+    </class>
+
     <class name="sawyer_sim_controllers/JointGroupPositionController"
            type="sawyer_sim_controllers::JointGroupPositionController"
            base_class_type="controller_interface::ControllerBase">

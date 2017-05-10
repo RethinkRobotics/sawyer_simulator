@@ -22,10 +22,11 @@ include_directories(include
 )
 
 ## Declare a C++ library
- add_library(${PROJECT_NAME}
-   src/sawyer_position_controller.cpp
-   src/joint_group_position_controller.cpp
- )
+add_library(${PROJECT_NAME}
+  src/sawyer_position_controller.cpp
+  src/sawyer_velocity_controller.cpp
+  src/sawyer_effort_controller.cpp
+)
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
