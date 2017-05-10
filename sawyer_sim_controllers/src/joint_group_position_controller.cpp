@@ -95,7 +95,12 @@ namespace sawyer_sim_controllers {
       // set the new commands for each controller
       std::vector<Command> command = *(position_command_buffer_.readFromRT());
       for (std::vector<Command>::iterator it = command.begin(); it != command.end(); it++) {
-        position_controllers_[it->name_]->setCommand(it->position_);
+        if(it->has_velocity_){
+          position_controllers_[it->name_]->setCommand(it->position_, it->velocity_);
+        }
+        else{
+          position_controllers_[it->name_]->setCommand(it->position_);
+        }
       }
     }
 

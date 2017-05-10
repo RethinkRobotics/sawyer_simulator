@@ -17,11 +17,14 @@
 #ifndef SAWYER_POSITION_CONTROLLER_H
 #define SAWYER_POSITION_CONTROLLER_H
 
+#include <mutex>
+
 #include <sawyer_sim_controllers/joint_group_position_controller.h>
 #include <intera_core_msgs/JointCommand.h>
 #include <ros/node_handle.h>
 
 #include <control_toolbox/pid.h>
+#include <realtime_tools/realtime_box.h>
 
 namespace sawyer_sim_controllers
 {
@@ -32,9 +35,18 @@ namespace sawyer_sim_controllers
     virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
 
   private:
+    // mutex for re-entrant calls to modeCommandCallback
+    std::mutex mtx_;
+    typedef std::unique_ptr<std::vector<Command>> CommandsPtr;
     ros::Subscriber sub_joint_command_;
-
+    ros::Subscriber sub_speed_ratio_;
+    realtime_tools::RealtimeBox< std::shared_ptr<const std_msgs::Float64> > speed_ratio_buffer_;
+    void speedRatioCallback(const std_msgs::Float64 msg);
     void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
+    CommandsPtr cmdTrajectoryMode(const intera_core_msgs::JointCommandConstPtr& msg);
+    CommandsPtr cmdPositionMode(const intera_core_msgs::JointCommandConstPtr& msg);
+
+
   };
 }
 

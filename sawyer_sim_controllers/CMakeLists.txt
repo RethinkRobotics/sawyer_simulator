@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   effort_controllers
   roscpp
   intera_core_msgs
+  realtime_tools
 )
 
 catkin_package(
@@ -29,4 +30,3 @@ include_directories(include
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
-
