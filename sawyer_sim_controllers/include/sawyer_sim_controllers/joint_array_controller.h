@@ -20,6 +20,7 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <realtime_tools/realtime_buffer.h>
 
+#define JOINT_ARRAY_CONTROLLER_NAME "joint_array_controller"
 namespace sawyer_sim_controllers {
   template <typename T> using JointControllerMap = typename std::map<std::string, std::shared_ptr<T> >;
   template <typename T> class JointArrayController : public controller_interface::Controller<hardware_interface::EffortJointInterface>
@@ -58,14 +59,14 @@ namespace sawyer_sim_controllers {
       XmlRpc::XmlRpcValue xml_struct;
       if (!nh.getParam("joints", xml_struct))
       {
-        ROS_ERROR_NAMED("position", "No 'joints' parameter in controller (namespace '%s')", nh.getNamespace().c_str());
+        ROS_ERROR_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "No 'joints' parameter in controller (namespace '%s')", nh.getNamespace().c_str());
         return false;
       }
 
       // Make sure it's a struct
       if (xml_struct.getType() != XmlRpc::XmlRpcValue::TypeStruct)
       {
-        ROS_ERROR_NAMED("position", "The 'joints' parameter is not a struct (namespace '%s')", nh.getNamespace().c_str());
+        ROS_ERROR_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "The 'joints' parameter is not a struct (namespace '%s')", nh.getNamespace().c_str());
         return false;
       }
 
@@ -79,7 +80,7 @@ namespace sawyer_sim_controllers {
         // Get joint controller
         if (joint_it->second.getType() != XmlRpc::XmlRpcValue::TypeStruct)
         {
-          ROS_ERROR_NAMED("position", "The 'joints/joint_controller' parameter is not a struct (namespace '%s')",
+          ROS_ERROR_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "The 'joints/joint_controller' parameter is not a struct (namespace '%s')",
                           nh.getNamespace().c_str());
           return false;
         }
@@ -93,7 +94,7 @@ namespace sawyer_sim_controllers {
         // Get the joint-namespace nodehandle
         {
           ros::NodeHandle joint_nh(nh, "joints/" + joint_controller_name);
-          ROS_INFO_STREAM_NAMED("init", "Loading sub-controller '" << joint_controller_name
+          ROS_INFO_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Loading sub-controller '" << joint_controller_name
                                                                    << "', Namespace: " << joint_nh.getNamespace());
 
           controllers_[joint_name].reset(new T());
