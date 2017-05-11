@@ -19,7 +19,7 @@
 
 namespace sawyer_sim_controllers {
   bool SawyerPositionController::init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n){
-    if(!sawyer_sim_controllers::JointGroupPositionController::init(hw, n)) {
+    if(!sawyer_sim_controllers::JointArrayController<effort_controllers::JointPositionController>::init(hw, n)) {
       return false;
     } else {
       std::string topic_name;
@@ -64,10 +64,10 @@ namespace sawyer_sim_controllers {
     // Determine the time required for the Joint that will take the longest to achieve goal
     for (size_t i = 0; i < msg->names.size(); i++)
     {
-      current_position[i] = position_controllers_[msg->names[i]]->joint_.getPosition();
-      if(position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity > 0){
+      current_position[i] = controllers_[msg->names[i]]->joint_.getPosition();
+      if(controllers_[msg->names[i]]->joint_urdf_->limits->velocity > 0){
         delta_time[i] = std::abs(msg->position[i] - current_position[i]) /
-                     (position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity);
+                     (controllers_[msg->names[i]]->joint_urdf_->limits->velocity);
       }
       else {
         delta_time[i] = 0.0;
@@ -94,7 +94,7 @@ namespace sawyer_sim_controllers {
         {
           velocity_direction = 0.0;
         }
-        cmd.velocity_ = speed_ratio->data * position_controllers_[msg->names[i]]->joint_urdf_->limits->velocity *
+        cmd.velocity_ = speed_ratio->data * controllers_[msg->names[i]]->joint_urdf_->limits->velocity *
                         velocity_direction * delta_time[i] / delta_time_max;
         cmd.has_velocity_ = true;
       }
@@ -131,11 +131,22 @@ namespace sawyer_sim_controllers {
     }
     // Only write the command if this is the correct command mode, with a valid CommandPtr
     if(commands.get()) {
-      position_command_buffer_.writeFromNonRT(*commands.get());
+      command_buffer_.writeFromNonRT(*commands.get());
       new_command_ = true;
     }
   }
 
+  void SawyerPositionController::setCommands() {
+    // set the new commands for each controller
+    std::vector<Command> command = *(command_buffer_.readFromRT());
+    for (auto it = command.begin(); it != command.end(); it++) {
+      if (it->has_velocity_) {
+        controllers_[it->name_]->setCommand(it->position_, it->velocity_);
+      } else {
+        controllers_[it->name_]->setCommand(it->position_);
+      }
+    }
+  }
 }
 
 PLUGINLIB_EXPORT_CLASS(sawyer_sim_controllers::SawyerPositionController, controller_interface::ControllerBase)
