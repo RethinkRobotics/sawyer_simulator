@@ -14,8 +14,8 @@
 * limitations under the License.
 **************************************************************************/
 
-#ifndef SAWYER_VELOCITY_CONTROLLER_H
-#define SAWYER_VELOCITY_CONTROLLER_H
+#ifndef SAWYER_EFFORT_CONTROLLER_H
+#define SAWYER_EFFORT_CONTROLLER_H
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
 #include <intera_core_msgs/JointCommand.h>
