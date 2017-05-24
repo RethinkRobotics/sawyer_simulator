@@ -58,6 +58,10 @@ namespace sawyer_sim_controllers {
   }
 
   SawyerPositionController::CommandsPtr SawyerPositionController::cmdPositionMode(const intera_core_msgs::JointCommandConstPtr& msg) {
+    if (msg->names.size() != msg->position.size()) {
+      ROS_ERROR_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Position commands size does not match joints size");
+    }
+
     std::vector<double> delta_time(msg->names.size());
     std::vector<double> current_position(msg->names.size());
     double delta_time_max = 0.0;
@@ -105,12 +109,16 @@ namespace sawyer_sim_controllers {
 
   SawyerPositionController::CommandsPtr SawyerPositionController::cmdTrajectoryMode(const intera_core_msgs::JointCommandConstPtr& msg) {
       CommandsPtr commands(new std::vector<Command>());
+      if (msg->names.size() != msg->position.size() || msg->names.size() != msg->velocity.size()) {
+        ROS_ERROR_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Trajectory commands size does not match joints size");
+      }
+
       for (size_t i = 0; i < msg->names.size(); i++) {
         Command cmd = Command();
         cmd.name_ = msg->names[i];
         cmd.position_ = msg->position[i];
         cmd.velocity_ = msg->velocity[i];
-        cmd.has_velocity_=true;
+        cmd.has_velocity_ = true;
         /*cmd.acceleration_ = msg->acceleration[i];
         cmd.has_acceleration_=true;*/ // TODO: Implement Feed Forward with Acceleration
         commands->push_back(cmd);

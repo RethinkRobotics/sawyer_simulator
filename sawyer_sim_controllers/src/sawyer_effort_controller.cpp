@@ -34,16 +34,22 @@ namespace sawyer_sim_controllers {
   }
 
   void SawyerEffortController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
-    std::vector<Command> commands;
+    if (msg->mode == intera_core_msgs::JointCommand::TORQUE_MODE) {
+      std::vector<Command> commands;
 
-    for (int i = 0; i < msg->names.size(); i++) {
-      Command cmd = Command();
-      cmd.name_ = msg->names[i];
-      cmd.effort_ = msg->effort[i];
-      commands.push_back(cmd);
+      if (msg->names.size() != msg->effort.size()) {
+        ROS_ERROR_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Effort commands size does not match joints size");
+      }
+
+      for (int i = 0; i < msg->names.size(); i++) {
+        Command cmd = Command();
+        cmd.name_ = msg->names[i];
+        cmd.effort_ = msg->effort[i];
+        commands.push_back(cmd);
+      }
+      command_buffer_.writeFromNonRT(commands);
+      new_command_ = true;
     }
-    command_buffer_.writeFromNonRT(commands);
-    new_command_ = true;
   }
 
   void SawyerEffortController::setCommands() {
