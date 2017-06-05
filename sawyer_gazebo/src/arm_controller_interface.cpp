@@ -59,16 +59,19 @@ void ArmControllerInterface::jointCommandCallback(const intera_core_msgs::JointC
       case intera_core_msgs::JointCommand::POSITION_MODE:
       case intera_core_msgs::JointCommand::TRAJECTORY_MODE:
         start_controllers.push_back(getControllerString("position"));
+        start_controllers.push_back(getControllerString("gravity"));
         stop_controllers.push_back(getControllerString("velocity"));
         stop_controllers.push_back(getControllerString("effort"));
         break;
       case intera_core_msgs::JointCommand::VELOCITY_MODE:
         start_controllers.push_back(getControllerString("velocity"));
+        start_controllers.push_back(getControllerString("gravity"));
         stop_controllers.push_back(getControllerString("position"));
         stop_controllers.push_back(getControllerString("effort"));
         break;
       case intera_core_msgs::JointCommand::TORQUE_MODE:
         start_controllers.push_back(getControllerString("effort"));
+        start_controllers.push_back(getControllerString("gravity"));
         stop_controllers.push_back(getControllerString("position"));
         stop_controllers.push_back(getControllerString("velocity"));
         break;

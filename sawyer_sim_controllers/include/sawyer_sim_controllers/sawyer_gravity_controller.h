@@ -14,43 +14,31 @@
 * limitations under the License.
 **************************************************************************/
 
-#ifndef SAWYER_POSITION_CONTROLLER_H
-#define SAWYER_POSITION_CONTROLLER_H
-
-#include <mutex>
+#ifndef SAWYER_GRAVITY_CONTROLLER_H
+#define SAWYER_GRAVITY_CONTROLLER_H
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
 #include <intera_core_msgs/JointCommand.h>
-#include <effort_controllers/joint_position_controller.h>
+#include <effort_controllers/joint_effort_controller.h>
 #include <ros/node_handle.h>
 
 #include <control_toolbox/pid.h>
-#include <realtime_tools/realtime_box.h>
-#include <sawyer_hardware_interface/shared_joint_interface.h>
 
 namespace sawyer_sim_controllers
 {
-  class SawyerPositionController : public sawyer_sim_controllers::JointArrayController<effort_controllers::JointPositionController>
+  class SawyerGravityController : public sawyer_sim_controllers::JointArrayController<effort_controllers::JointEffortController>
   {
   public:
-    virtual ~SawyerPositionController() {sub_joint_command_.shutdown();}
+    SawyerGravityController() : sawyer_sim_controllers::JointArrayController<effort_controllers::JointEffortController>() { };
+
+    virtual ~SawyerGravityController() {sub_joint_command_.shutdown();}
     virtual bool init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n) override;
     void setCommands();
 
   private:
-    // mutex for re-entrant calls to modeCommandCallback
-    std::mutex mtx_;
-    typedef std::unique_ptr<std::vector<Command>> CommandsPtr;
     ros::Subscriber sub_joint_command_;
-    int lastMode;
 
-    ros::Subscriber sub_speed_ratio_;
-    realtime_tools::RealtimeBox< std::shared_ptr<const std_msgs::Float64> > speed_ratio_buffer_;
-    void speedRatioCallback(const std_msgs::Float64 msg);
     void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
-    CommandsPtr cmdTrajectoryMode(const intera_core_msgs::JointCommandConstPtr& msg);
-    CommandsPtr cmdPositionMode(const intera_core_msgs::JointCommandConstPtr& msg);
-
   };
 }
 

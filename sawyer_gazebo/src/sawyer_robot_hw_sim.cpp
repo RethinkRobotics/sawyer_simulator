@@ -30,8 +30,50 @@ bool SawyerRobotHWSim::initSim(
 {
   bool ret = gazebo_ros_control::DefaultRobotHWSim::initSim(robot_namespace,
                            model_nh, parent_model, urdf_model, transmissions);
+
+  // add custom (sum) interfaces
+  ret &= SawyerRobotHWSim::initCustomInterfaces();
+
   SawyerRobotHWSim::initBrakes();
   return ret;
+}
+
+
+
+bool SawyerRobotHWSim::initCustomInterfaces()
+{
+
+  // Hard-code apply SumEffortInterfaces to all joints in Sawyer
+
+  // Initialize values
+  for(unsigned int j=0; j < n_dof_; j++)
+  {
+
+    if (joint_control_methods_[j] == EFFORT)
+    {
+      ROS_DEBUG_STREAM_NAMED("sawyer_robot_hw_sim","Loading joint '" << joint_names_[j]
+        << "' of type '" << "sawyer_hardware_interface/SharedJointInterface" << "'");
+
+      sawyer_hardware_interface::SumJointHandlePtr sumHandle(new sawyer_hardware_interface::SumJointHandle(
+        js_interface_.getHandle(joint_names_[j]),
+        &joint_effort_command_[j]));
+
+      sum_ej_handles_refs_.push_back(sumHandle);
+      sum_ej_interface_.registerContainer(sumHandle);
+    }
+    else
+    {
+      ROS_FATAL_STREAM_NAMED("sawyer_robot_hw_sim","No matching hardware interface found for '"
+        << "sawyer_hardware_interface/SharedJointInterface" << "' while loading interfaces for " << joint_names_[j] );
+      return false;
+    }
+
+  }
+
+  // Register interfaces
+  gazebo_ros_control::DefaultRobotHWSim::registerInterface(&sum_ej_interface_);
+
+  return true;
 }
 
 void SawyerRobotHWSim::initBrakes()
@@ -52,6 +94,63 @@ void SawyerRobotHWSim::initBrakes()
     }
   }
 }
+
+
+void SawyerRobotHWSim::writeSim(ros::Time time, ros::Duration period)
+{
+  // NB: Majority of this function is copy paste of inherited writeSim
+
+  // If the E-stop is active, joints controlled by position commands will maintain their positions.
+  if (e_stop_active_)
+  {
+    if (!last_e_stop_active_)
+    {
+      last_joint_position_command_ = joint_position_;
+      last_e_stop_active_ = true;
+    }
+    joint_position_command_ = last_joint_position_command_;
+  }
+  else
+  {
+    last_e_stop_active_ = false;
+  }
+
+  ej_sat_interface_.enforceLimits(period);
+  ej_limits_interface_.enforceLimits(period);
+  pj_sat_interface_.enforceLimits(period);
+  pj_limits_interface_.enforceLimits(period);
+  vj_sat_interface_.enforceLimits(period);
+  vj_limits_interface_.enforceLimits(period);
+
+  // for each handle in sum vector store, call 'updateCommandSum()'
+  for (std::vector<sawyer_hardware_interface::SumJointHandlePtr>::iterator it = sum_ej_handles_refs_.begin(); it != sum_ej_handles_refs_.end(); ++it)
+  {
+    (*it)->updateCommandSum();
+  }
+  ROS_DEBUG_STREAM_THROTTLE_NAMED(20, "sawyer_robot_hw_sim", "SumJoint '" << sum_ej_handles_refs_[0]->getName() << "' has ("
+      << sum_ej_handles_refs_[0]->howManySubs() << ") subs");
+
+
+  for(unsigned int j=0; j < n_dof_; j++)
+  {
+    switch (joint_control_methods_[j])
+    {
+      case EFFORT:
+        {
+          const double effort = e_stop_active_ ? 0 : joint_effort_command_[j];
+          sim_joints_[j]->SetForce(0, effort);
+        }
+        break;
+      default:
+        {
+          ROS_WARN_STREAM_NAMED("sawyer_robot_hw_sim", "Non-EFFORT controlled joint on sawyer: '"
+              << joint_names_[j] << "'!");
+          break;
+        }
+    }
+  }
+}
+
 
 void SawyerRobotHWSim::brakesActive(const bool active)
 {

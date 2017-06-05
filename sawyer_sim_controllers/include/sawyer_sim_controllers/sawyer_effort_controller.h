@@ -30,7 +30,7 @@ namespace sawyer_sim_controllers
   {
   public:
     virtual ~SawyerEffortController() {sub_joint_command_.shutdown();}
-    virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
+    virtual bool init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n);
     void setCommands();
 
   private:

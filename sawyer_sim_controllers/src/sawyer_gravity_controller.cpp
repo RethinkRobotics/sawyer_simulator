@@ -14,26 +14,28 @@
 * limitations under the License.
 **************************************************************************/
 
-#include <sawyer_sim_controllers/sawyer_effort_controller.h>
+#include <sawyer_sim_controllers/sawyer_gravity_controller.h>
 #include <pluginlib/class_list_macros.h>
 
 namespace sawyer_sim_controllers {
-  bool SawyerEffortController::init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n){
-    if(!sawyer_sim_controllers::JointArrayController<effort_controllers::JointEffortController>::init(hw, n)) {
+
+  bool SawyerGravityController::init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n){
+    // TODO: use constant, don't hardcode ctrl_subtype ("GRAVITY_COMPENSATION")
+    if(!sawyer_sim_controllers::JointArrayController<effort_controllers::JointEffortController>::init(hw, n, "GRAVITY_COMPENSATION")) {
       return false;
     } else {
       std::string topic_name;
       if (n.getParam("topic", topic_name)) {
         ros::NodeHandle nh("~");
-        sub_joint_command_ = nh.subscribe(topic_name, 1, &SawyerEffortController::jointCommandCB, this);
+        sub_joint_command_ = nh.subscribe(topic_name, 1, &SawyerGravityController::jointCommandCB, this);
       } else {
-        sub_joint_command_ = n.subscribe("joint_command", 1, &SawyerEffortController::jointCommandCB, this);
+        sub_joint_command_ = n.subscribe("gravity_command", 1, &SawyerGravityController::jointCommandCB, this);
       }
     }
     return true;
   }
 
-  void SawyerEffortController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
+  void SawyerGravityController::jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg) {
     if (msg->mode == intera_core_msgs::JointCommand::TORQUE_MODE) {
       std::vector<Command> commands;
 
@@ -52,7 +54,7 @@ namespace sawyer_sim_controllers {
     }
   }
 
-  void SawyerEffortController::setCommands() {
+  void SawyerGravityController::setCommands() {
     // set the new commands for each controller
     std::vector<Command> command = *(command_buffer_.readFromRT());
     for (auto it = command.begin(); it != command.end(); it++) {
@@ -61,4 +63,4 @@ namespace sawyer_sim_controllers {
   }
 }
 
-PLUGINLIB_EXPORT_CLASS(sawyer_sim_controllers::SawyerEffortController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(sawyer_sim_controllers::SawyerGravityController, controller_interface::ControllerBase)

@@ -4,7 +4,7 @@
            type="sawyer_sim_controllers::SawyerPositionController"
            base_class_type="controller_interface::ControllerBase">
         <description>
-            The SawyerPositionController tracks position commands for the entire Sawyer arm. It expects an EffortJointInterface type of hardware interface.
+            The SawyerPositionController tracks position commands for the entire Sawyer arm. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
         </description>
     </class>
 
@@ -12,7 +12,7 @@
            type="sawyer_sim_controllers::SawyerVelocityController"
            base_class_type="controller_interface::ControllerBase">
         <description>
-            The SawyerPositionController tracks velocity commands for the entire Sawyer arm. It expects an EffortJointInterface type of hardware interface.
+            The SawyerPositionController tracks velocity commands for the entire Sawyer arm. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
         </description>
     </class>
 
@@ -20,7 +20,15 @@
            type="sawyer_sim_controllers::SawyerEffortController"
            base_class_type="controller_interface::ControllerBase">
         <description>
-            The SawyerPositionController tracks effort commands for the entire Sawyer arm. It expects an EffortJointInterface type of hardware interface.
+            The SawyerPositionController tracks effort commands for the entire Sawyer arm. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
+        </description>
+    </class>
+
+    <class name="sawyer_sim_controllers/SawyerGravityController"
+           type="sawyer_sim_controllers::SawyerGravityController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The SawyerGravityController adds an effort component to compensate for gravity. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
         </description>
     </class>
 

@@ -10,12 +10,13 @@ find_package(catkin REQUIRED COMPONENTS
   roslint
   intera_core_msgs
   realtime_tools
+  sawyer_hardware_interface
 )
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES sawyer_sim_controllers
-  CATKIN_DEPENDS effort_controllers roscpp
+  CATKIN_DEPENDS sawyer_hardware_interface roscpp
 )
 roslint_cpp()
 
@@ -28,6 +29,7 @@ add_library(${PROJECT_NAME}
   src/sawyer_position_controller.cpp
   src/sawyer_velocity_controller.cpp
   src/sawyer_effort_controller.cpp
+  src/sawyer_gravity_controller.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

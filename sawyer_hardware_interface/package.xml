@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package>
-  <name>sawyer_gazebo</name>
+  <name>sawyer_hardware_interface</name>
   <version>0.0.0</version>
-  <description>The sawyer_gazebo package</description>
+  <description>The sawyer_hardware_interface package</description>
 
-  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="imcmahon@todo.todo">imcmahon</maintainer>
+  <maintainer email="rlinsalata@todo.todo">rlinsalata</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/sawyer_gazebo</url> -->
+  <!-- <url type="website">http://wiki.ros.org/sawyer_hardware_interface</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -40,34 +40,15 @@
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>gazebo_ros</build_depend>
-  <build_depend>gazebo_ros_control</build_depend>
-  <build_depend>intera_core_msgs</build_depend>
-  <build_depend>libgazebo7-dev</build_depend>
-  <build_depend>realtime_tools</build_depend>
+  <build_depend>hardware_interface</build_depend>
   <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>kdl_parser</build_depend>
-  <build_depend>tf_conversions</build_depend>
-  <build_depend>roslint</build_depend>
-  <build_depend>sawyer_hardware_interface</build_depend>
-
-  <run_depend>gazebo</run_depend>
-  <run_depend>gazebo_ros</run_depend>
-  <run_depend>gazebo_ros_control</run_depend>
-  <run_depend>intera_core_msgs</run_depend>
-  <run_depend>realtime_tools</run_depend>
+  <run_depend>hardware_interface</run_depend>
   <run_depend>roscpp</run_depend>
-  <run_depend>sawyer_description</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>kdl_parser</run_depend>
-  <run_depend>tf_conversions</run_depend>
-  <run_depend>sawyer_hardware_interface</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <gazebo plugin_path="${prefix}/lib" gazebo_media_path="${prefix}" />
-    <gazebo_ros_control plugin="${prefix}/sawyer_robot_hw_sim_plugins.xml"/>
+    <!-- Other tools can request additional information be placed here -->
+
   </export>
 </package>

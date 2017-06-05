@@ -19,11 +19,15 @@
 #include <controller_interface/controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <realtime_tools/realtime_buffer.h>
+#include <sawyer_hardware_interface/shared_joint_interface.h>
 
 #define JOINT_ARRAY_CONTROLLER_NAME "joint_array_controller"
 namespace sawyer_sim_controllers {
-  template <typename T> using JointControllerMap = typename std::map<std::string, std::shared_ptr<T> >;
-  template <typename T> class JointArrayController : public controller_interface::Controller<hardware_interface::EffortJointInterface>
+  template <typename T>
+  using JointControllerMap = typename std::map<std::string, std::shared_ptr<T> >;
+
+  template <typename T>  // T = Joint(_)Controller
+  class JointArrayController : public controller_interface::Controller<sawyer_hardware_interface::SharedJointInterface>
   {
   public:
     JointArrayController() {};
@@ -48,13 +52,27 @@ namespace sawyer_sim_controllers {
 
     size_t n_joints_;
     bool new_command_;
+    std::string control_mode_name_;
+
    // virtual void setCommands(std::map<std::string, Command> cmds);
 
     realtime_tools::RealtimeBuffer<std::vector<Command> > command_buffer_;
     JointControllerMap<T> controllers_;
 
-    //template <typename T>
-    bool init(hardware_interface::EffortJointInterface* robot, ros::NodeHandle& nh) {
+
+    //template <typename T>  // T = Joint(_)Controller
+    virtual bool init(sawyer_hardware_interface::SharedJointInterface* robot, ros::NodeHandle& nh)
+    {
+      return init(robot, nh, "");
+    }
+
+    virtual bool init(sawyer_hardware_interface::SharedJointInterface* robot, ros::NodeHandle& nh, const std::string& ctrl_type)
+    {
+      return _initJointsControls(robot, nh, ctrl_type);
+    }
+
+    bool _initJointsControls(sawyer_hardware_interface::SharedJointInterface* robot, ros::NodeHandle& nh, const std::string& ctrl_type)
+    {
       // Get joint sub-controllers
       XmlRpc::XmlRpcValue xml_struct;
       if (!nh.getParam("joints", xml_struct))
@@ -72,7 +90,8 @@ namespace sawyer_sim_controllers {
 
       // Get number of joints
       n_joints_ = xml_struct.size();
-      ROS_INFO_STREAM_NAMED("position", "Initializing JointArrayController with " << n_joints_ << " joints.");
+      control_mode_name_ = nh.getNamespace();
+      ROS_INFO_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Initializing JointArrayController(type:" << control_mode_name_ <<") with " << n_joints_ << " joints.");
 
       int i = 0;  // track the joint id
       for (XmlRpc::XmlRpcValue::iterator joint_it = xml_struct.begin(); joint_it != xml_struct.end(); ++joint_it)
@@ -96,9 +115,18 @@ namespace sawyer_sim_controllers {
           ros::NodeHandle joint_nh(nh, "joints/" + joint_controller_name);
           ROS_INFO_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Loading sub-controller '" << joint_controller_name
                                                                    << "', Namespace: " << joint_nh.getNamespace());
-
-          controllers_[joint_name].reset(new T());
-          controllers_[joint_name]->init(robot, joint_nh);
+          if (ctrl_type.length() <= 0)
+          {
+            // This is a main ctrl command
+            controllers_[joint_name].reset(new T());
+            controllers_[joint_name]->init(robot, joint_nh);
+          }
+          else
+          {
+            // Acquire a compounded sub-command handle - we're going to Add (+) our command to the main ctrl cmd
+            controllers_[joint_name].reset(new T());
+            controllers_[joint_name]->init(robot, joint_nh, ctrl_type);
+          }
 
         }  // end of joint-namespaces
 
@@ -111,6 +139,8 @@ namespace sawyer_sim_controllers {
 
     //template <typename T>
     void starting(const ros::Time& time) {
+      ROS_DEBUG_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "STARTING - JointArrayController for '" << control_mode_name_ << "' mode.");
+
       for (auto it = controllers_.begin(); it != controllers_.end(); it++) {
         it->second->starting(time);
       }
@@ -118,6 +148,7 @@ namespace sawyer_sim_controllers {
 
     //template <typename T>
     void stopping(const ros::Time& time) {
+      ROS_DEBUG_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Stopping - JointArrayController for '" << control_mode_name_ << "' mode.");
 
     }
 
