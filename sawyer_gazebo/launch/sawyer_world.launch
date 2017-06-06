@@ -18,6 +18,12 @@
   <arg name="load_robot_description" default="true"/>
   <param if="$(arg load_robot_description)" name="robot_description"
       command="$(find xacro)/xacro --inorder $(find sawyer_description)/urdf/sawyer.urdf.xacro gazebo:=true"/>
+  <!-- Load Parameters to the ROS Parameter Server -->
+  <rosparam command="load" file="$(find sawyer_description)/params/named_poses.yaml" />
+  <rosparam command="load" file="$(find sawyer_gazebo)/config/params.yaml" />
+  <param name="robot/root_name" value="base" />
+  <param name="robot/tip_name" value="right_hand" />
+
 
   <!-- We resume the logic in empty_world.launch, changing the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -28,10 +34,6 @@
     <arg name="use_sim_time" value="$(arg use_sim_time)"/>
     <arg name="headless" value="$(arg headless)"/>
   </include>
-
-  <!-- Load Parameters to the ROS Parameter Server -->
-  <rosparam command="load" file="$(find sawyer_description)/params/named_poses.yaml" />
-  <rosparam command="load" file="$(find sawyer_gazebo)/config/params.yaml" />
 
   <!-- Publish a static transform between the world and the base of the robot -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_world" args="0 0 0 0 0 0 1 world base" />

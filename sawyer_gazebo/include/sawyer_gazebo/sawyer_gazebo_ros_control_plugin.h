@@ -19,6 +19,7 @@
 #include <gazebo_ros_control/gazebo_ros_control_plugin.h>
 #include <sawyer_gazebo/assembly_interface.h>
 #include <sawyer_gazebo/arm_controller_interface.h>
+#include <sawyer_gazebo/arm_kinematics_interface.h>
 
 
 namespace sawyer_gazebo {
@@ -28,6 +29,7 @@ namespace sawyer_gazebo {
   private:
     AssemblyInterface assembly_interface_;
     ArmControllerInterface arm_controller_interface_;
+    ArmKinematicsInterface arm_kinematics_interface_;
 
   protected:
     void Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf);
