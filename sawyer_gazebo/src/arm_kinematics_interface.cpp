@@ -15,14 +15,16 @@
 **************************************************************************/
 
 #include <sawyer_gazebo/arm_kinematics_interface.h>
+
+#include <memory>
+
 #include <intera_core_msgs/SEAJointState.h>
 #include <intera_core_msgs/EndpointState.h>
+#include <geometry_msgs/PoseStamped.h>
 
-#include <urdf/model.h>
-
-#include <kdl/jntarray.hpp>
-
+#include <kdl_parser/kdl_parser.hpp>
 #include <tf_conversions/tf_kdl.h>
+#include <urdf/model.h>
 
 namespace sawyer_gazebo {
 
@@ -41,23 +43,23 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side) {
                        &ArmKinematicsInterface::jointStateCallback, this);
   joint_command_sub_ = nh.subscribe("limb/"+side_+"/joint_command", 1,
                        &ArmKinematicsInterface::jointCommandCallback, this);
-  fk_service_ = nh.advertiseService("/ExternalTools/"+side_+"/PositionKinematicsNode/FKService", &ArmKinematicsInterface::FKService, this);
+  fk_service_ = nh.advertiseService("/ExternalTools/"+side_+"/PositionKinematicsNode/FKService", &ArmKinematicsInterface::servicePositionFK, this);
+  // TODO ik_service_ = nh.advertiseService("/ExternalTools/"+side_+"/PositionKinematicsNode/IKService", &ArmKinematicsInterface::servicePositionIK, this);
   update_timer_ = nh.createTimer(100, &ArmKinematicsInterface::update, this);// 100Hz
   return true;
 }
 
 bool ArmKinematicsInterface::createKinematicChain(std::string tip_name){
-  Kinematics* kin_ptr = new Kinematics();
-  if(!tree_.getChain(root_name_, tip_name, kin_ptr->chain)) {
+  Kinematics kin;
+  if(!tree_.getChain(root_name_, tip_name, kin.chain)) {
     ROS_FATAL_NAMED("kinematics", "Couldn't find chain %s to %s", root_name_.c_str(), tip_name.c_str());
     return false;
   }
-  KDL::Vector gravity = KDL::Vector(0.0, 0.0, -9.8);
-  kin_ptr->gravity_solver = new KDL::ChainIdSolver_RNE(kin_ptr->chain, gravity);
-  kin_ptr->fk_pos_solver = new KDL::ChainFkSolverPos_recursive(kin_ptr->chain);
-  kin_ptr->fk_vel_solver = new KDL::ChainFkSolverVel_recursive(kin_ptr->chain);
-  //ik_solver_vel_ = new KDL::ChainIkSolverVel_pinv(kin.chain);
-  kinematic_chain_map_.insert(std::make_pair(tip_name, *kin_ptr));
+  auto gravity = KDL::Vector(0.0, 0.0, -9.8);
+  kin.gravity_solver = std::make_unique<KDL::ChainIdSolver_RNE>(kin.chain, gravity);
+  kin.fk_pos_solver = std::make_unique<KDL::ChainFkSolverPos_recursive>(kin.chain);
+  kin.fk_vel_solver = std::make_unique<KDL::ChainFkSolverVel_recursive>(kin.chain);
+  kinematic_chain_map_.insert(std::make_pair(tip_name, std::move(kin)));
   return true;;
 }
 
@@ -89,14 +91,12 @@ bool ArmKinematicsInterface::parseParams(const ros::NodeHandle& nh) {
 }
 
 void ArmKinematicsInterface::update(const ros::TimerEvent& e) {
-  //std::shared_ptr<const sensor_msgs::JointState> joint_state;
-  //joint_state_buffer_.get(joint_state);
   publishEndpointState();
 }
 
 void ArmKinematicsInterface::jointStateCallback(const sensor_msgs::JointStateConstPtr& msg) {
   std::shared_ptr<sensor_msgs::JointState> joint_state(new sensor_msgs::JointState(*msg));
-  joint_state_buffer_.set(joint_state);
+  joint_state_buffer_.set(joint_state); // FIXME - what happens when different joint states messages are received?
 }
 
 void ArmKinematicsInterface::jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg) {
@@ -104,39 +104,39 @@ void ArmKinematicsInterface::jointCommandCallback(const intera_core_msgs::JointC
   joint_command_buffer_.set(joint_command);
 }
 
-void ArmKinematicsInterface::jointStateToKDL(const sensor_msgs::JointState& joint_state, const Kinematics& kin,
+void ArmKinematicsInterface::jointStateToKDL(const sensor_msgs::JointState& joint_state, const KDL::Chain& chain,
                                              KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff){
-    size_t num_jnts = kin.chain.getNrOfJoints();
-    size_t num_segs = kin.chain.getNrOfSegments();
-    jnt_pos.resize(num_jnts);
-    jnt_vel.resize(num_jnts);
-    jnt_eff.resize(num_jnts);
-    size_t jnt_idx = 0;
-    for (size_t seg_idx = 0; seg_idx < num_segs; seg_idx++)
+  auto num_jnts = chain.getNrOfJoints();
+  auto num_segs = chain.getNrOfSegments();
+  jnt_pos.resize(num_jnts);
+  jnt_vel.resize(num_jnts);
+  jnt_eff.resize(num_jnts);
+  auto jnt_idx = 0;
+  for (auto seg_idx = 0; seg_idx < num_segs; seg_idx++)
+  {
+    auto jnt = chain.getSegment(seg_idx).getJoint();
+    if(jnt.getTypeName() == "None" || jnt.getTypeName() == "Unknown")
+      continue;
+    auto chain_joint_name = chain.getSegment(seg_idx).getJoint().getName();
+    for (auto msg_idx = 0; msg_idx < joint_state.name.size(); msg_idx++)
     {
-      KDL::Joint jnt = kin.chain.getSegment(seg_idx).getJoint();
-      if(jnt.getTypeName() == "None" || jnt.getTypeName() == "Unknown")
-        continue;
-      std::string chain_joint_name = kin.chain.getSegment(seg_idx).getJoint().getName();
-      for (size_t msg_idx = 0; msg_idx < joint_state.name.size(); msg_idx++)
-      {
-        if (joint_state.name[msg_idx] == chain_joint_name){
-          if(jnt_idx < joint_state.position.size())
-            jnt_pos(jnt_idx) = joint_state.position[msg_idx];
-          if(jnt_idx < joint_state.velocity.size())
-            jnt_vel(jnt_idx) = joint_state.velocity[msg_idx];
-          if(jnt_idx < joint_state.effort.size())
-            jnt_eff(jnt_idx) = joint_state.effort[msg_idx];
-          jnt_idx++;
-          break;
-        }
+      if (joint_state.name[msg_idx] == chain_joint_name){
+        if(jnt_idx < joint_state.position.size())
+          jnt_pos(jnt_idx) = joint_state.position[msg_idx];
+        if(jnt_idx < joint_state.velocity.size())
+          jnt_vel(jnt_idx) = joint_state.velocity[msg_idx];
+        if(jnt_idx < joint_state.effort.size())
+          jnt_eff(jnt_idx) = joint_state.effort[msg_idx];
+        jnt_idx++;
+        break;
       }
     }
+  }
 }
 
-bool ArmKinematicsInterface::FKService(intera_core_msgs::SolvePositionFK::Request& req,
+bool ArmKinematicsInterface::servicePositionFK(intera_core_msgs::SolvePositionFK::Request& req,
                                        intera_core_msgs::SolvePositionFK::Response& res){
-  for(size_t i=0; i<req.configuration.size(); i++) {
+  for(auto i=0; i<req.configuration.size(); i++) {
     geometry_msgs::PoseStamped pose_stamp;
     res.inCollision.push_back(false);
     res.isValid.push_back(false);
@@ -150,7 +150,7 @@ bool ArmKinematicsInterface::FKService(intera_core_msgs::SolvePositionFK::Reques
       }
     }
     KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
-    jointStateToKDL(req.configuration[i], kinematic_chain_map_[req.tip_names[i]], jnt_pos, jnt_vel, jnt_eff);
+    jointStateToKDL(req.configuration[i], kinematic_chain_map_[req.tip_names[i]].chain, jnt_pos, jnt_vel, jnt_eff);
     if(computePositionFK(kinematic_chain_map_[req.tip_names[i]], jnt_pos, res.pose_stamp[i].pose)){
       res.isValid[i]=true;
     }
@@ -163,7 +163,7 @@ bool ArmKinematicsInterface::computePositionFK(const Kinematics& kin,
                                                geometry_msgs::Pose& result)
 {
   KDL::Frame p_out;
-  size_t num_segs = kin.chain.getNrOfSegments();
+  auto num_segs = kin.chain.getNrOfSegments();
   if (kin.fk_pos_solver->JntToCart(jnt_pos, p_out, num_segs) < 0)
   {
     return false;
@@ -177,7 +177,7 @@ bool ArmKinematicsInterface::computeVelocityFK(const Kinematics& kin,
                                                geometry_msgs::Twist& result)
 {
   KDL::FrameVel v_out;
-  int num_segs = kin.chain.getNrOfSegments();
+  auto num_segs = kin.chain.getNrOfSegments();
   if (kin.fk_vel_solver->JntToCart(jnt_vel, v_out, num_segs) < 0)
   {
     return false;
@@ -185,31 +185,46 @@ bool ArmKinematicsInterface::computeVelocityFK(const Kinematics& kin,
   tf::twistKDLToMsg(v_out.GetTwist(), result);
   return true;
 }
+/* TODO once ChainFDSolverTau is upstreamed
+bool ArmKinematicsInterface::computeEffortFK(const Kinematics& kin,
+                                             const KDL::JntArray& jnt_pos,
+                                             const KDL::JntArray& jnt_eff,
+                                             geometry_msgs::Wrench& result)
+{
+  KDL::Wrench wrench;
+  if (kin.fk_eff_solver->JntToCart(jnt_pos, jnt_eff, wrench) < 0)
+  {
+    return false;
+  }
+  tf::wrenchKDLToMsg(wrench, result);
+  return true;
+} */
 
 void ArmKinematicsInterface::publishEndpointState() {
-    intera_core_msgs::EndpointState endpoint_state;
-    std::shared_ptr<const sensor_msgs::JointState> joint_state;
-    joint_state_buffer_.get(joint_state);
-    if(joint_state.get())
-    {
-      KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
-      jointStateToKDL(*joint_state.get(), kinematic_chain_map_[tip_name_], jnt_pos, jnt_vel, jnt_eff);
-      endpoint_state.header.stamp = ros::Time::now();
-      endpoint_state.valid = true;
-      if(!computePositionFK(kinematic_chain_map_[tip_name_], jnt_pos, endpoint_state.pose)){
-        endpoint_state.valid &= false;
-      }
-      KDL::JntArrayVel jnt_array_vel(jnt_pos, jnt_vel);
-      if(!computeVelocityFK(kinematic_chain_map_[tip_name_], jnt_array_vel, endpoint_state.twist)){
-        endpoint_state.valid &= false;
-      }
-      /*
-      if(!computeEffortFK(tip_name_, *joint_state.get(), endpoint_state.wrench)){ // TODO
-        endpoint_state.valid &= false;
-      }
-      */
-      endpoint_state_pub_.publish(endpoint_state);
+  intera_core_msgs::EndpointState endpoint_state;
+  std::shared_ptr<const sensor_msgs::JointState> joint_state;
+  joint_state_buffer_.get(joint_state);
+  if(joint_state.get())
+  {
+    KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
+    jointStateToKDL(*joint_state.get(), kinematic_chain_map_[tip_name_].chain, jnt_pos, jnt_vel, jnt_eff);
+    endpoint_state.valid = true;
+    if(!computePositionFK(kinematic_chain_map_[tip_name_], jnt_pos, endpoint_state.pose)){
+      endpoint_state.valid &= false;
     }
+    KDL::JntArrayVel jnt_array_vel(jnt_pos, jnt_vel);
+    if(!computeVelocityFK(kinematic_chain_map_[tip_name_], jnt_array_vel, endpoint_state.twist)){
+      endpoint_state.valid &= false;
+    }
+    /* TODO once ChainFDSolverTau is upstreamed
+    if(!computeEffortFK(kinematic_chain_map_[tip_name_], jnt_pos, jnt_eff, endpoint_state.wrench)){
+      endpoint_state.valid &= false;
+    }
+    */
+    endpoint_state.header.frame_id = root_name_;
+    endpoint_state.header.stamp = ros::Time::now();
+    endpoint_state_pub_.publish(endpoint_state);
+  }
 }
 
 }

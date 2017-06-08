@@ -20,19 +20,20 @@
 
 #include <ros/ros.h>
 #include <realtime_tools/realtime_box.h>
+
+#include <sensor_msgs/JointState.h>
 #include <intera_core_msgs/JointCommand.h>
 #include <intera_core_msgs/SolvePositionFK.h>
-#include <sensor_msgs/JointState.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <intera_core_msgs/SolvePositionIK.h>
+#include <geometry_msgs/Twist.h>
 
-#include <tf/transform_listener.h>
-
+#include <kdl/chainidsolver_recursive_newton_euler.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainfksolvervel_recursive.hpp>
-#include <kdl/chainiksolvervel_pinv.hpp>
-#include <kdl/chainidsolver_recursive_newton_euler.hpp>
+//#include <kdl/chainiksolvervel_pinv.hpp>
 
-#include <kdl_parser/kdl_parser.hpp>
+#include <kdl/jntarray.hpp>
+#include <kdl/tree.hpp>
 
 namespace sawyer_gazebo {
   class ArmKinematicsInterface
@@ -43,18 +44,17 @@ namespace sawyer_gazebo {
   private:
     std::string side_, root_name_, tip_name_;
     KDL::Tree tree_;
-    class Kinematics
-    {
-    public:
+    class Kinematics {
+      public:
         KDL::Chain chain;
-        KDL::ChainFkSolverPos_recursive* fk_pos_solver;
-        KDL::ChainFkSolverVel_recursive* fk_vel_solver;
-        KDL::ChainIdSolver_RNE*         gravity_solver;
-        //KDL::ChainIkSolverVel_pinv* ik_solver_vel;
-        //KDL::ChainIkSolverPos_NR_JL* ik_solver_pos;
+        std::unique_ptr<KDL::ChainFkSolverPos_recursive> fk_pos_solver;
+        std::unique_ptr<KDL::ChainFkSolverVel_recursive> fk_vel_solver;
+        std::unique_ptr<KDL::ChainIdSolver_RNE>         gravity_solver;
+        /*std::unique_ptr<KDL::ChainFDSolverTau>           fk_eff_solver; TODO
+        std::unique_ptr<KDL::ChainIkSolverVel_pinv> ik_solver_vel;
+        std::unique_ptr<KDL::ChainIkSolverPos_NR_JL> ik_solver_pos;*/
     };
     std::map<std::string, Kinematics> kinematic_chain_map_;
-    tf::TransformListener tf_listener_;
 
     realtime_tools::RealtimeBox< std::shared_ptr<const intera_core_msgs::JointCommand> > joint_command_buffer_;
     realtime_tools::RealtimeBox< std::shared_ptr<const sensor_msgs::JointState> > joint_state_buffer_;
@@ -70,21 +70,25 @@ namespace sawyer_gazebo {
 
     ros::Timer update_timer_;
 
-  protected:
-    bool createKinematicChain(std::string tip_name);
-
     void update(const ros::TimerEvent& e);
 
+    bool createKinematicChain(std::string tip_name);
+
     void jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg);
+
     void jointStateCallback(const sensor_msgs::JointStateConstPtr& msg);
 
     void publishGravityTorques();
+
     void publishEndpointState();
 
     bool parseParams(const ros::NodeHandle& nh);
 
-    bool FKService(intera_core_msgs::SolvePositionFK::Request& req,
+    bool servicePositionFK(intera_core_msgs::SolvePositionFK::Request& req,
                    intera_core_msgs::SolvePositionFK::Response& res);
+    /* TODO: IK Service */
+    bool servicePositionIK(intera_core_msgs::SolvePositionIK::Request& req,
+                   intera_core_msgs::SolvePositionIK::Response& res);
     /* Method to calculate the FK for the required joint configuration
      *  @returns true if successful
      */
@@ -92,14 +96,8 @@ namespace sawyer_gazebo {
 
     bool computeVelocityFK(const Kinematics& kin, const KDL::JntArrayVel& jnt_vel, geometry_msgs::Twist& result);
 
-    void jointStateToKDL(const sensor_msgs::JointState& joint_configuration, const Kinematics& kin,
+    void jointStateToKDL(const sensor_msgs::JointState& joint_configuration, const KDL::Chain& chain,
                          KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff);
-    /* Method to calculate the IK for the required end pose
-     *  @returns true if successful
-     */
-    /*bool getPositionIK(const geometry_msgs::PoseStamped& pose_stamp, const sensor_msgs::JointState& seed,
-                       sensor_msgs::JointState* result);*/
-
   };
 }
 #endif // #ifndef __SAWYER_GAZEBO__ARM_KINEMATICS_INTERFACE_H_

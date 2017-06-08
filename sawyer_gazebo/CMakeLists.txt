@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(sawyer_gazebo)
 
 find_package(catkin
@@ -47,6 +47,7 @@ add_library(sawyer_gazebo_ros_control
   src/arm_controller_interface.cpp
   src/arm_kinematics_interface.cpp
 )
+set_property(TARGET sawyer_gazebo_ros_control PROPERTY CXX_STANDARD 14)
 
 target_link_libraries(sawyer_gazebo_ros_control
   ${catkin_LIBRARIES}
@@ -58,7 +59,6 @@ target_link_libraries(sawyer_robot_hw_sim
   ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
 )
-
 add_dependencies(
   sawyer_gazebo_ros_control
   ${catkin_EXPORTED_TARGETS}
