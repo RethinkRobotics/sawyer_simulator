@@ -8,6 +8,7 @@ find_package(catkin
     intera_core_msgs
     realtime_tools
     roscpp
+    roslint
     std_msgs
     kdl_parser
     tf_conversions
@@ -31,6 +32,7 @@ catkin_package(
   sawyer_robot_hw_sim
 )
 
+roslint_cpp()
 link_directories(
   ${GAZEBO_LIBRARY_DIRS}
   ${catkin_LIBRARY_DIRS}

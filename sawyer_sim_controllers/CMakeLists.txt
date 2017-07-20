@@ -7,6 +7,7 @@ add_definitions(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   effort_controllers
   roscpp
+  roslint
   intera_core_msgs
   realtime_tools
 )
@@ -16,6 +17,7 @@ catkin_package(
   LIBRARIES sawyer_sim_controllers
   CATKIN_DEPENDS effort_controllers roscpp
 )
+roslint_cpp()
 
 include_directories(include
   ${catkin_INCLUDE_DIRS}
