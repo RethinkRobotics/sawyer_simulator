@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(sawyer_gazebo)
 
 find_package(catkin
@@ -8,7 +8,10 @@ find_package(catkin
     intera_core_msgs
     realtime_tools
     roscpp
+    roslint
     std_msgs
+    kdl_parser
+    tf_conversions
 )
 
 # Depend on system install of Gazebo
@@ -21,12 +24,15 @@ catkin_package(
   intera_core_msgs
   realtime_tools
   roscpp
+  kdl_parser
+  tf_conversions
  INCLUDE_DIRS
   include
  LIBRARIES
   sawyer_robot_hw_sim
 )
 
+roslint_cpp()
 link_directories(
   ${GAZEBO_LIBRARY_DIRS}
   ${catkin_LIBRARY_DIRS}
@@ -41,7 +47,9 @@ add_library(sawyer_gazebo_ros_control
   src/sawyer_gazebo_ros_control_plugin.cpp
   src/assembly_interface.cpp
   src/arm_controller_interface.cpp
+  src/arm_kinematics_interface.cpp
 )
+set_property(TARGET sawyer_gazebo_ros_control PROPERTY CXX_STANDARD 14)
 
 target_link_libraries(sawyer_gazebo_ros_control
   ${catkin_LIBRARIES}
@@ -53,7 +61,6 @@ target_link_libraries(sawyer_robot_hw_sim
   ${catkin_LIBRARIES}
   ${GAZEBO_LIBRARIES}
 )
-
 add_dependencies(
   sawyer_gazebo_ros_control
   ${catkin_EXPORTED_TARGETS}
