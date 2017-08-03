@@ -30,6 +30,11 @@ add_library(${PROJECT_NAME}
   src/sawyer_velocity_controller.cpp
   src/sawyer_effort_controller.cpp
   src/sawyer_gravity_controller.cpp
+  ## Copies of upstream ros_controllers/effort_controllers:
+  #  (remove once inheritable change is upstreamed)
+  src/sawyer_joint_position_controller.cpp
+  src/sawyer_joint_velocity_controller.cpp
+  src/sawyer_joint_effort_controller.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

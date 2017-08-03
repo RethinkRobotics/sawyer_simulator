@@ -32,4 +32,31 @@
         </description>
     </class>
 
+
+
+    <!-- Following 3 "sawyer_effort_controllers" are copies of upstream 'ros_controllers/effort_controllers' which should be removed once inheritence enabling change is upstreamed. -->
+    <class name="sawyer_sim_controllers/JointPositionController"
+           type="sawyer_effort_controllers::JointPositionController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The JointPositionController tracks position commands. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
+        </description>
+    </class>
+
+    <class name="sawyer_sim_controllers/JointVelocityController"
+           type="sawyer_effort_controllers::JointVelocityController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The JointVelocityController tracks velocity commands. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
+        </description>
+    </class>
+
+    <class name="sawyer_sim_controllers/JointEffortController"
+           type="sawyer_effort_controllers::JointEffortController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            The JointEffortController tracks effort commands. It expects a SharedJointInterface (EffortJointInterface) type of hardware interface.
+        </description>
+    </class>
+
 </library>

@@ -19,7 +19,7 @@
 
 namespace sawyer_sim_controllers {
   bool SawyerVelocityController::init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n){
-    if(!sawyer_sim_controllers::JointArrayController<effort_controllers::JointVelocityController>::init(hw, n)) {
+    if(!sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointVelocityController>::init(hw, n)) {
       return false;
     } else {
       std::string topic_name;

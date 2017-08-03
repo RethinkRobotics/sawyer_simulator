@@ -19,7 +19,7 @@
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
 #include <intera_core_msgs/JointCommand.h>
-#include <effort_controllers/joint_velocity_controller.h>
+#include <sawyer_sim_controllers/sawyer_joint_velocity_controller.h>
 #include <ros/node_handle.h>
 
 #include <control_toolbox/pid.h>
@@ -27,7 +27,7 @@
 
 namespace sawyer_sim_controllers
 {
-  class SawyerVelocityController : public sawyer_sim_controllers::JointArrayController<effort_controllers::JointVelocityController>
+  class SawyerVelocityController : public sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointVelocityController>
   {
   public:
     virtual ~SawyerVelocityController() {sub_joint_command_.shutdown();}

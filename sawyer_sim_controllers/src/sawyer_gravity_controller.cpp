@@ -21,7 +21,7 @@ namespace sawyer_sim_controllers {
 
   bool SawyerGravityController::init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n){
     // TODO: use constant, don't hardcode ctrl_subtype ("GRAVITY_COMPENSATION")
-    if(!sawyer_sim_controllers::JointArrayController<effort_controllers::JointEffortController>::init(hw, n, "GRAVITY_COMPENSATION")) {
+    if(!sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointEffortController>::init(hw, n, "GRAVITY_COMPENSATION")) {
       return false;
     } else {
       std::string topic_name;
