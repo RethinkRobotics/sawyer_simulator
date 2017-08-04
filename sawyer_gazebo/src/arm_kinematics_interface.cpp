@@ -247,10 +247,13 @@ bool ArmKinematicsInterface::computeGravityFK(const Kinematics& kin,
                                               KDL::JntArray& jnt_torques)
 {
   KDL::JntArray jnt_accel;
-  std::vector<KDL::Wrench> f_ext;
   jnt_accel.resize(kin.chain.getNrOfJoints());
+
+  KDL::JntArray zero(kin.chain.getNrOfJoints());
+  std::vector<KDL::Wrench> f_ext(kin.chain.getNrOfSegments(), KDL::Wrench::Zero());
   jnt_torques.resize(kin.chain.getNrOfJoints());
-  if (kin.gravity_solver->CartToJnt(jnt_pos, jnt_vel, jnt_accel, f_ext, jnt_torques) < 0)
+
+  if (kin.gravity_solver->CartToJnt(jnt_pos, zero, zero, f_ext, jnt_torques) < 0)
   {
     return false;
   }
