@@ -90,7 +90,7 @@ robot:
   # Sawyer SDK Controllers: Gravity Compensation ------------
   right_joint_gravity_controller:
     type: sawyer_sim_controllers/SawyerGravityController
-    topic: /robot/limb/right/gravity_command
+    topic: /robot/limb/right/gravity_compensation_torques
     joints:
       right_j0_controller:
         joint: right_j0

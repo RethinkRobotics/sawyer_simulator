@@ -18,7 +18,7 @@
 #define SAWYER_GRAVITY_CONTROLLER_H
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
-#include <intera_core_msgs/JointCommand.h>
+#include <intera_core_msgs/SEAJointState.h>
 #include <sawyer_sim_controllers/sawyer_joint_effort_controller.h>
 #include <ros/node_handle.h>
 
@@ -38,7 +38,7 @@ namespace sawyer_sim_controllers
   private:
     ros::Subscriber sub_joint_command_;
 
-    void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
+    void gravityCommandCB(const intera_core_msgs::SEAJointStateConstPtr& msg);
   };
 }
 
