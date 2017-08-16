@@ -69,7 +69,9 @@ ros::Subscriber joint_command_sub_;
 ros::Subscriber joint_state_sub_;
 
 ros::Publisher endpoint_state_pub_;
+long endpoint_state_seq_;
 ros::Publisher gravity_torques_pub_;
+long gravity_torques_seq_;
 
 ros::ServiceServer ik_service_;
 ros::ServiceServer fk_service_;
@@ -125,11 +127,19 @@ bool computePositionFK(const Kinematics& kin, const KDL::JntArray& jnt_pos, geom
  */
 bool computeVelocityFK(const Kinematics& kin, const KDL::JntArrayVel& jnt_vel, geometry_msgs::Twist& result);
 
+/* Method to calculate the gravity torques FK for the required joint positions in rad and
+ * joint velocities in rad/sec with the result stored in the provided KDL JointArray
+ * @returns true if successful
+ */
+bool computeGravityFK(const Kinematics& kin, const KDL::JntArray& jnt_pos,
+                      const KDL::JntArray& jnt_vel, KDL::JntArray& jnt_torques);
+
 /* Method to break down a JointState message object into the corresponding
  * KDL position, velocity, and effort Joint Arrays
  */
 void jointStateToKDL(const sensor_msgs::JointState& joint_configuration, const KDL::Chain& chain,
-                     KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff);
+                     KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff,
+                     std::vector<std::string>& jnt_names);
 };
 }  // namespace sawyer_gazebo
 #endif  // SAWYER_GAZEBO_ARM_KINEMATICS_INTERFACE_H

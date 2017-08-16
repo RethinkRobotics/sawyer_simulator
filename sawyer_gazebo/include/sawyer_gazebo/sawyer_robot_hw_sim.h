@@ -19,6 +19,8 @@
 
 // gazebo_ros_control
 #include <gazebo_ros_control/default_robot_hw_sim.h>
+#include <sawyer_hardware_interface/sum_command_interface.h>
+#include <sawyer_hardware_interface/shared_joint_interface.h>
 
 
 namespace sawyer_gazebo
@@ -35,19 +37,27 @@ public:
     const urdf::Model *const urdf_model,
     std::vector<transmission_interface::TransmissionInfo> transmissions);
 
+  virtual void writeSim(ros::Time time, ros::Duration period);
+
   virtual void eStopActive(const bool active);
 
   virtual void brakesActive(const bool active);
 
 protected:
-    void initBrakes();
-    std::vector<double> joint_enable_;
-    std::vector<double> joint_disable_;
-    static const double BRAKE_VALUE;
+  bool initCustomInterfaces();
+  void initBrakes();
+
+  sawyer_hardware_interface::SharedJointInterface sum_ej_interface_;
+  // secondary list of refs to SumJointHandle containers, so we can call updateCommandSum() before write
+  std::vector<sawyer_hardware_interface::SumJointHandlePtr> sum_ej_handles_refs_;
+
+  std::vector<double> joint_enable_;
+  std::vector<double> joint_disable_;
+  static const double BRAKE_VALUE;
 };
 
 typedef std::shared_ptr<SawyerRobotHWSim> SawyerRobotHWSimPtr;
 
-}
+}  // namespace
 
 #endif // #ifndef __SAWYER_GAZEBO_PLUGIN_DEFAULT_ROBOT_HW_SIM_H_

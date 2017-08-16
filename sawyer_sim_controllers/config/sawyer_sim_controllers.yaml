@@ -32,7 +32,7 @@ robot:
       right_j6_controller:
         joint: right_j6
         pid: {p: 10000,  i: 100, d: 100}
-  
+
   # Sawyer SDK Controllers: Velocity --------------------------
   right_joint_velocity_controller:
     type: sawyer_sim_controllers/SawyerVelocityController
@@ -59,7 +59,7 @@ robot:
       right_j6_controller:
         joint: right_j6
         pid: {p: 100,  i: 100, d: 100}
-  
+
   # Sawyer SDK Controllers: Effort --------------------------
   right_joint_effort_controller:
     type: sawyer_sim_controllers/SawyerEffortController
@@ -86,3 +86,31 @@ robot:
       right_j6_controller:
         joint: right_j6
         pid: {p: 100,  i: 100, d: 100}
+
+  # Sawyer SDK Controllers: Gravity Compensation ------------
+  right_joint_gravity_controller:
+    type: sawyer_sim_controllers/SawyerGravityController
+    topic: /robot/limb/right/gravity_compensation_torques
+    joints:
+      right_j0_controller:
+        joint: right_j0
+        pid: {p: 700,  i: 0.01, d: 100}
+      right_j1_controller:
+        joint: right_j1
+        pid: {p: 100,  i: 100, d: 100}
+      right_j2_controller:
+        joint: right_j2
+        pid: {p: 100,  i: 100, d: 100}
+      right_j3_controller:
+        joint: right_j3
+        pid: {p: 100,  i: 100, d: 100}
+      right_j4_controller:
+        joint: right_j4
+        pid: {p: 100,  i: 100, d: 100}
+      right_j5_controller:
+        joint: right_j5
+        pid: {p: 100,  i: 100, d: 100}
+      right_j6_controller:
+        joint: right_j6
+        pid: {p: 100,  i: 100, d: 100}
+

@@ -18,8 +18,8 @@
 #include <pluginlib/class_list_macros.h>
 
 namespace sawyer_sim_controllers {
-  bool SawyerVelocityController::init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n){
-    if(!sawyer_sim_controllers::JointArrayController<effort_controllers::JointVelocityController>::init(hw, n)) {
+  bool SawyerVelocityController::init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n){
+    if(!sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointVelocityController>::init(hw, n)) {
       return false;
     } else {
       std::string topic_name;

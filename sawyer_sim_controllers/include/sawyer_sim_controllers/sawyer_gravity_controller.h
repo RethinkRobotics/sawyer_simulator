@@ -14,30 +14,31 @@
 * limitations under the License.
 **************************************************************************/
 
-#ifndef SAWYER_VELOCITY_CONTROLLER_H
-#define SAWYER_VELOCITY_CONTROLLER_H
+#ifndef SAWYER_GRAVITY_CONTROLLER_H
+#define SAWYER_GRAVITY_CONTROLLER_H
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
-#include <intera_core_msgs/JointCommand.h>
-#include <sawyer_sim_controllers/sawyer_joint_velocity_controller.h>
+#include <intera_core_msgs/SEAJointState.h>
+#include <sawyer_sim_controllers/sawyer_joint_effort_controller.h>
 #include <ros/node_handle.h>
 
 #include <control_toolbox/pid.h>
-#include <sawyer_hardware_interface/shared_joint_interface.h>
 
 namespace sawyer_sim_controllers
 {
-  class SawyerVelocityController : public sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointVelocityController>
+  class SawyerGravityController : public sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointEffortController>
   {
   public:
-    virtual ~SawyerVelocityController() {sub_joint_command_.shutdown();}
-    virtual bool init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n);
+    SawyerGravityController() : sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointEffortController>() { };
+
+    virtual ~SawyerGravityController() {sub_joint_command_.shutdown();}
+    virtual bool init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n) override;
     void setCommands();
 
   private:
     ros::Subscriber sub_joint_command_;
 
-    void jointCommandCB(const intera_core_msgs::JointCommandConstPtr& msg);
+    void gravityCommandCB(const intera_core_msgs::SEAJointStateConstPtr& msg);
   };
 }
 

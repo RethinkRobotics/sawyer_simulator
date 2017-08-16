@@ -22,6 +22,7 @@
 #include <intera_core_msgs/EndpointState.h>
 #include <geometry_msgs/PoseStamped.h>
 
+#include <kdl/frames.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 #include <tf_conversions/tf_kdl.h>
 #include <urdf/model.h>
@@ -41,6 +42,8 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side)
   {
     return false;
   }
+  gravity_torques_seq_ = 0;
+  endpoint_state_seq_ = 0;
   gravity_torques_pub_ = nh.advertise<intera_core_msgs::SEAJointState>(
                             "limb/"+side_+"/gravity_compensation_torques", 1);
   endpoint_state_pub_ = nh.advertise<intera_core_msgs::EndpointState>(
@@ -118,6 +121,7 @@ bool ArmKinematicsInterface::parseParams(const ros::NodeHandle& nh)
 void ArmKinematicsInterface::update(const ros::TimerEvent& e)
 {
   publishEndpointState();
+  publishGravityTorques();
 }
 
 void ArmKinematicsInterface::jointStateCallback(const sensor_msgs::JointStateConstPtr& msg)
@@ -132,8 +136,51 @@ void ArmKinematicsInterface::jointCommandCallback(const intera_core_msgs::JointC
   joint_command_buffer_.set(joint_command);
 }
 
+void ArmKinematicsInterface::publishGravityTorques()
+{
+  std::shared_ptr<const sensor_msgs::JointState> joint_state;
+  joint_state_buffer_.get(joint_state);
+  if (joint_state.get())
+  {
+    intera_core_msgs::SEAJointState gravity_torques;
+    auto j_state = *joint_state.get();
+    auto num_jnts = kinematic_chain_map_[tip_name_].chain.getNrOfJoints();
+    gravity_torques.name.resize(num_jnts);
+    gravity_torques.actual_position.resize(num_jnts);
+    gravity_torques.actual_velocity.resize(num_jnts);
+    gravity_torques.actual_effort.resize(num_jnts);
+    gravity_torques.gravity_only.resize(num_jnts);
+    // FIXME(imcmahon): Populate below fields
+    gravity_torques.commanded_position.resize(num_jnts);
+    gravity_torques.commanded_velocity.resize(num_jnts);
+    gravity_torques.commanded_acceleration.resize(num_jnts);
+    gravity_torques.commanded_effort.resize(num_jnts);
+    gravity_torques.gravity_model_effort.resize(num_jnts);
+    gravity_torques.interaction_torque.resize(num_jnts);
+    gravity_torques.hysteresis_model_effort.resize(num_jnts);
+    gravity_torques.crosstalk_model_effort.resize(num_jnts);
+    // FIXME(imcmahon): Populate above fields
+    KDL::JntArray jnt_pos, jnt_vel, jnt_eff, jnt_torques;
+    jointStateToKDL(j_state, kinematic_chain_map_[tip_name_].chain, jnt_pos, jnt_vel, jnt_eff, gravity_torques.name);
+    computeGravityFK(kinematic_chain_map_[tip_name_], jnt_pos, jnt_vel, jnt_torques);
+    for (size_t jnt_idx = 0; jnt_idx < num_jnts; jnt_idx++)
+    {
+      gravity_torques.actual_position[jnt_idx] = jnt_pos(jnt_idx);
+      gravity_torques.actual_velocity[jnt_idx] = jnt_vel(jnt_idx);
+      gravity_torques.actual_effort[jnt_idx] = jnt_eff(jnt_idx);
+      gravity_torques.gravity_only[jnt_idx] = jnt_torques(jnt_idx);
+    }
+    gravity_torques.header.frame_id = root_name_;
+    gravity_torques_seq_++;
+    gravity_torques.header.seq = gravity_torques_seq_;
+    gravity_torques.header.stamp = ros::Time::now();
+    gravity_torques_pub_.publish(gravity_torques);
+  }
+}
+
 void ArmKinematicsInterface::jointStateToKDL(const sensor_msgs::JointState& joint_state, const KDL::Chain& chain,
-                                             KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff)
+                                             KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff,
+                                             std::vector<std::string>& jnt_names)
 {
   auto num_jnts = chain.getNrOfJoints();
   auto num_segs = chain.getNrOfSegments();
@@ -141,16 +188,17 @@ void ArmKinematicsInterface::jointStateToKDL(const sensor_msgs::JointState& join
   jnt_pos.resize(num_jnts);
   jnt_vel.resize(num_jnts);
   jnt_eff.resize(num_jnts);
+  jnt_names.resize(num_jnts);
   decltype(num_jnts) jnt_idx = 0;
   for (decltype(num_segs) seg_idx = 0; seg_idx < num_segs; seg_idx++)
   {
     const auto& jnt = chain.getSegment(seg_idx).getJoint();
     if (jnt.getTypeName() == "None" || jnt.getTypeName() == "Unknown")
       continue;
-    const auto& chain_joint_name = chain.getSegment(seg_idx).getJoint().getName();
+    jnt_names[jnt_idx] = chain.getSegment(seg_idx).getJoint().getName();
     for (decltype(num_msg) msg_idx = 0; msg_idx < num_msg; msg_idx++)
     {
-      if (jnt_idx < num_jnts && joint_state.name[msg_idx] == chain_joint_name)
+      if (jnt_idx < num_jnts && joint_state.name[msg_idx] == jnt_names[jnt_idx])
       {
         if (jnt_idx < joint_state.position.size())
           jnt_pos(jnt_idx) = joint_state.position[msg_idx];
@@ -183,11 +231,31 @@ bool ArmKinematicsInterface::servicePositionFK(intera_core_msgs::SolvePositionFK
         continue;
     }
     KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
-    jointStateToKDL(req.configuration[i], kinematic_chain_map_[req.tip_names[i]].chain, jnt_pos, jnt_vel, jnt_eff);
+    std::vector<std::string> jnt_names;
+    jointStateToKDL(req.configuration[i], kinematic_chain_map_[req.tip_names[i]].chain, jnt_pos, jnt_vel, jnt_eff, jnt_names);
     if (computePositionFK(kinematic_chain_map_[req.tip_names[i]], jnt_pos, res.pose_stamp[i].pose))
     {
       res.isValid[i] = true;
     }
+  }
+  return true;
+}
+
+bool ArmKinematicsInterface::computeGravityFK(const Kinematics& kin,
+                                              const KDL::JntArray& jnt_pos,
+                                              const KDL::JntArray& jnt_vel,
+                                              KDL::JntArray& jnt_torques)
+{
+  KDL::JntArray jnt_accel;
+  jnt_accel.resize(kin.chain.getNrOfJoints());
+
+  KDL::JntArray zero(kin.chain.getNrOfJoints());
+  std::vector<KDL::Wrench> f_ext(kin.chain.getNrOfSegments(), KDL::Wrench::Zero());
+  jnt_torques.resize(kin.chain.getNrOfJoints());
+
+  if (kin.gravity_solver->CartToJnt(jnt_pos, zero, zero, f_ext, jnt_torques) < 0)
+  {
+    return false;
   }
   return true;
 }
@@ -240,7 +308,8 @@ void ArmKinematicsInterface::publishEndpointState()
   if (joint_state.get())
   {
     KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
-    jointStateToKDL(*joint_state.get(), kinematic_chain_map_[tip_name_].chain, jnt_pos, jnt_vel, jnt_eff);
+    std::vector<std::string> jnt_names;
+    jointStateToKDL(*joint_state.get(), kinematic_chain_map_[tip_name_].chain, jnt_pos, jnt_vel, jnt_eff, jnt_names);
     endpoint_state.valid = true;
     if (!computePositionFK(kinematic_chain_map_[tip_name_], jnt_pos, endpoint_state.pose))
     {

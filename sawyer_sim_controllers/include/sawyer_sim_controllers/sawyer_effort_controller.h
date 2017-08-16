@@ -19,18 +19,18 @@
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
 #include <intera_core_msgs/JointCommand.h>
-#include <effort_controllers/joint_effort_controller.h>
+#include <sawyer_sim_controllers/sawyer_joint_effort_controller.h>
 #include <ros/node_handle.h>
 
 #include <control_toolbox/pid.h>
 
 namespace sawyer_sim_controllers
 {
-  class SawyerEffortController : public sawyer_sim_controllers::JointArrayController<effort_controllers::JointEffortController>
+  class SawyerEffortController : public sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointEffortController>
   {
   public:
     virtual ~SawyerEffortController() {sub_joint_command_.shutdown();}
-    virtual bool init(hardware_interface::EffortJointInterface* hw, ros::NodeHandle &n);
+    virtual bool init(sawyer_hardware_interface::SharedJointInterface* hw, ros::NodeHandle &n);
     void setCommands();
 
   private:
