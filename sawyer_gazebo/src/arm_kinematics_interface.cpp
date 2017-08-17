@@ -20,6 +20,7 @@
 
 #include <intera_core_msgs/SEAJointState.h>
 #include <intera_core_msgs/EndpointState.h>
+#include <intera_core_msgs/EndpointStates.h>
 #include <geometry_msgs/PoseStamped.h>
 
 #include <kdl/frames.hpp>
@@ -42,12 +43,19 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side)
   {
     return false;
   }
+  // Init Solvers to default hand camera
+  if (!createKinematicChain(hand_camera_name_))
+  {
+    return false;
+  }
   gravity_torques_seq_ = 0;
   endpoint_state_seq_ = 0;
   gravity_torques_pub_ = nh.advertise<intera_core_msgs::SEAJointState>(
                             "limb/"+side_+"/gravity_compensation_torques", 1);
   endpoint_state_pub_ = nh.advertise<intera_core_msgs::EndpointState>(
                             "limb/"+side_+"/endpoint_state", 1);
+  tip_state_pub_ = nh.advertise<intera_core_msgs::EndpointStates>(
+                            "limb/"+side_+"/tip_states", 1);
   joint_state_sub_ = nh.subscribe("joint_states", 1,
                        &ArmKinematicsInterface::jointStateCallback, this);
   joint_command_sub_ = nh.subscribe("limb/"+side_+"/joint_command", 1,
@@ -55,9 +63,9 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side)
   fk_service_ = nh.advertiseService(
                     "/ExternalTools/"+side_+"/PositionKinematicsNode/FKService",
                     &ArmKinematicsInterface::servicePositionFK, this);
-  // TODO(imcmahon): ik_service_ = nh.advertiseService(
-  //                "/ExternalTools/"+side_+"/PositionKinematicsNode/IKService",
-  //                &ArmKinematicsInterface::servicePositionIK, this);
+  ik_service_ = nh.advertiseService(
+                  "/ExternalTools/"+side_+"/PositionKinematicsNode/IKService",
+                  &ArmKinematicsInterface::servicePositionIK, this);
   // Update at 100Hz
   update_timer_ = nh.createTimer(100, &ArmKinematicsInterface::update, this);
   return true;
@@ -105,7 +113,13 @@ bool ArmKinematicsInterface::parseParams(const ros::NodeHandle& nh)
   if (!nh.getParam("tip_name", tip_name_))
   {
     ROS_FATAL_NAMED("kinematics",
-        "No tip name for gravity found on parameter server");
+        "No tip name found on parameter server");
+    return false;
+  }
+  if (!nh.getParam("hand_camera_name", hand_camera_name_))
+  {
+    ROS_FATAL_NAMED("kinematics",
+        "No hand camera name found on parameter server");
     return false;
   }
   robot_model.initString(urdf_xml);
@@ -213,6 +227,37 @@ void ArmKinematicsInterface::jointStateToKDL(const sensor_msgs::JointState& join
   }
 }
 
+bool ArmKinematicsInterface::servicePositionIK(intera_core_msgs::SolvePositionIK::Request& req,
+                                       intera_core_msgs::SolvePositionIK::Response& res)
+{ /*
+  auto req_size = req.pose_stamp.size();
+  res.joints.resize(req_size, sensor_msgs::JointState());
+  res.result_type.resize(req_size, intera_core_msgs::SolvePositionIK::IK_FAILED);
+  for (size_t i = 0; i < req_size; i++)
+  {
+    res.joints[i].header.stamp = ros::Time::now();
+    // Try to find the kinematic chain, if not, create it
+    if (kinematic_chain_map_.find(req.tip_names[i]) == kinematic_chain_map_.end() &&
+        !createKinematicChain(req.tip_names[i]))
+    {
+        // If chain is not found and cannot be created, leave isValid false and move on
+        res.result_type = intera_core_msgs::SolvePositionIK::IK_ENDPOINT_DOES_NOT_EXIST;
+        continue;
+    }
+    if (req.use_nullspace_goal.size() > i && req.use_nullspace_goal[i] ){
+      // use req.nullspace_goal
+    }
+    KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
+    std::vector<std::string> jnt_names;
+    jointStateToKDL(req.configuration[i], kinematic_chain_map_[req.tip_names[i]].chain, jnt_pos, jnt_vel, jnt_eff, jnt_names);
+    if (computePositionFK(kinematic_chain_map_[req.tip_names[i]], jnt_pos, res.pose_stamp[i].pose))
+    {
+      res.isValid[i] = true;
+    }
+}*/
+  return true;
+}
+
 bool ArmKinematicsInterface::servicePositionFK(intera_core_msgs::SolvePositionFK::Request& req,
                                        intera_core_msgs::SolvePositionFK::Response& res)
 {
@@ -302,32 +347,45 @@ bool ArmKinematicsInterface::computeEffortFK(const Kinematics& kin,
 
 void ArmKinematicsInterface::publishEndpointState()
 {
-  intera_core_msgs::EndpointState endpoint_state;
   std::shared_ptr<const sensor_msgs::JointState> joint_state;
   joint_state_buffer_.get(joint_state);
   if (joint_state.get())
   {
-    KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
-    std::vector<std::string> jnt_names;
-    jointStateToKDL(*joint_state.get(), kinematic_chain_map_[tip_name_].chain, jnt_pos, jnt_vel, jnt_eff, jnt_names);
-    endpoint_state.valid = true;
-    if (!computePositionFK(kinematic_chain_map_[tip_name_], jnt_pos, endpoint_state.pose))
+    intera_core_msgs::EndpointStates endpoint_states;
+    const auto frames = {tip_name_, hand_camera_name_};
+    for(const auto& frame : frames)
     {
-      endpoint_state.valid &= false;
+      intera_core_msgs::EndpointState endpoint_state;
+      endpoint_state.valid = true;
+      KDL::JntArray jnt_pos, jnt_vel, jnt_eff;
+      std::vector<std::string> jnt_names;
+      jointStateToKDL(*joint_state.get(), kinematic_chain_map_[frame].chain, jnt_pos, jnt_vel, jnt_eff, jnt_names);
+      if (!computePositionFK(kinematic_chain_map_[frame], jnt_pos, endpoint_state.pose))
+      {
+        endpoint_state.valid &= false;
+      }
+      KDL::JntArrayVel jnt_array_vel(jnt_pos, jnt_vel);
+      if (!computeVelocityFK(kinematic_chain_map_[frame], jnt_array_vel, endpoint_state.twist))
+      {
+        endpoint_state.valid &= false;
+      }
+      /* TODO(imcmahon) once ChainFDSolverTau is upstreamed
+      if(!computeEffortFK(kinematic_chain_map_[tip_name_], jnt_pos, jnt_eff, endpoint_state.wrench)){
+        endpoint_state.valid &= false;
+      }
+      */
+      endpoint_states.names.push_back(frame);
+      endpoint_states.states.push_back(endpoint_state);
+      if(frame == tip_name_)
+      {
+        endpoint_state.header.frame_id = root_name_;
+        endpoint_state.header.stamp = ros::Time::now();
+        endpoint_state_pub_.publish(endpoint_state);
+      }
     }
-    KDL::JntArrayVel jnt_array_vel(jnt_pos, jnt_vel);
-    if (!computeVelocityFK(kinematic_chain_map_[tip_name_], jnt_array_vel, endpoint_state.twist))
-    {
-      endpoint_state.valid &= false;
-    }
-    /* TODO(imcmahon) once ChainFDSolverTau is upstreamed
-    if(!computeEffortFK(kinematic_chain_map_[tip_name_], jnt_pos, jnt_eff, endpoint_state.wrench)){
-      endpoint_state.valid &= false;
-    }
-    */
-    endpoint_state.header.frame_id = root_name_;
-    endpoint_state.header.stamp = ros::Time::now();
-    endpoint_state_pub_.publish(endpoint_state);
+    endpoint_states.header.frame_id = root_name_;
+    endpoint_states.header.stamp = ros::Time::now();
+    tip_state_pub_.publish(endpoint_states);
   }
 }
 

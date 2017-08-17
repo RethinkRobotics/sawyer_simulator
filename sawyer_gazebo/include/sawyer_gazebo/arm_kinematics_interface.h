@@ -48,7 +48,7 @@ public:
 bool init(ros::NodeHandle& nh, std::string side);
 
 private:
-std::string side_, root_name_, tip_name_;
+std::string side_, root_name_, tip_name_, hand_camera_name_;
 KDL::Tree tree_;
 struct Kinematics
 {
@@ -69,6 +69,7 @@ ros::Subscriber joint_command_sub_;
 ros::Subscriber joint_state_sub_;
 
 ros::Publisher endpoint_state_pub_;
+ros::Publisher tip_state_pub_;
 long endpoint_state_seq_;
 ros::Publisher gravity_torques_pub_;
 long gravity_torques_seq_;
