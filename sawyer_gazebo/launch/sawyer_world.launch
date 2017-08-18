@@ -27,7 +27,11 @@
   <rosparam command="load" file="$(find sawyer_description)/params/named_poses.yaml" />
   <rosparam command="load" file="$(find sawyer_gazebo)/config/acceleration_limits.yaml" />
   <param name="robot/limb/right/root_name" value="base" />
-  <param name="robot/limb/right/tip_name" value="right_hand" />
+  <param if="$(arg electric_gripper)" name="robot/limb/right/tip_name"
+         value="right_gripper_tip" />
+  <param unless="$(arg electric_gripper)" name="robot/limb/right/tip_name"
+         value="right_hand" />
+
   <param name="robot/limb/right/camera_name" value="right_hand_camera" />
   <param if="$(arg electric_gripper)"     name="robot/limb/right/gravity_tip_name"
          value="right_gripper_tip" />
