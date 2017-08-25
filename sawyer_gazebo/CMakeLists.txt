@@ -4,8 +4,10 @@ project(sawyer_gazebo)
 find_package(catkin
   REQUIRED COMPONENTS
     sawyer_hardware_interface
+    cv_bridge
     gazebo_ros
     gazebo_ros_control
+    image_transport
     intera_core_msgs
     realtime_tools
     roscpp
@@ -23,6 +25,7 @@ catkin_package(
  CATKIN_DEPENDS
   sawyer_hardware_interface
   gazebo_ros_control
+  image_transport
   intera_core_msgs
   realtime_tools
   roscpp
@@ -50,6 +53,7 @@ add_library(sawyer_gazebo_ros_control
   src/assembly_interface.cpp
   src/arm_controller_interface.cpp
   src/arm_kinematics_interface.cpp
+  src/head_interface.cpp
 )
 set_property(TARGET sawyer_gazebo_ros_control PROPERTY CXX_STANDARD 14)
 

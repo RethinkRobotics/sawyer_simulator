@@ -17,7 +17,8 @@
        output="screen" ns="/robot" args="load right_joint_position_controller
                                          right_joint_velocity_controller
                                          right_joint_effort_controller
-                                         right_joint_gravity_controller"/>
+                                         right_joint_gravity_controller
+                                         head_position_controller"/>
 
   <!-- convert joint states to TF transforms -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"

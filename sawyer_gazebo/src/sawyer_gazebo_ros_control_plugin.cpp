@@ -24,6 +24,7 @@ void SawyerGazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sdf::E
   assembly_interface_.init(model_nh_);
   arm_controller_interface_.init(model_nh_, "right", controller_manager_);
   arm_kinematics_interface_.init(model_nh_, "right");
+  head_interface_.init(model_nh_, controller_manager_);
 }
 
 // register the plugin with gazebo
