@@ -59,4 +59,12 @@
         </description>
     </class>
 
+    <class name="sawyer_sim_controllers/SawyerHeadController"
+	 type="sawyer_sim_controllers::SawyerHeadController"
+	 base_class_type="controller_interface::ControllerBase">
+        <description>
+           The SawyerHeadController tracks position commands for the Sawyer head pan. It expects a EffortJointInterface type of hardware interface.
+        </description>
+  </class>
+
 </library>

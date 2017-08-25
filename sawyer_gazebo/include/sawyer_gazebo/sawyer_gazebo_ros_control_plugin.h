@@ -20,6 +20,7 @@
 #include <sawyer_gazebo/assembly_interface.h>
 #include <sawyer_gazebo/arm_controller_interface.h>
 #include <sawyer_gazebo/arm_kinematics_interface.h>
+#include <sawyer_gazebo/head_interface.h>
 
 
 namespace sawyer_gazebo {
@@ -30,6 +31,7 @@ namespace sawyer_gazebo {
     AssemblyInterface assembly_interface_;
     ArmControllerInterface arm_controller_interface_;
     ArmKinematicsInterface arm_kinematics_interface_;
+    HeadInterface head_interface_;
 
   protected:
     void Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf);

@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sawyer_sim_controllers)
 
-## Add support for C++11, supported in ROS Kinetic and newer
-add_definitions(-std=c++11)
+## Add support for C++14, supported in ROS Kinetic and newer
+add_definitions(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
   effort_controllers
@@ -35,7 +35,10 @@ add_library(${PROJECT_NAME}
   src/sawyer_joint_position_controller.cpp
   src/sawyer_joint_velocity_controller.cpp
   src/sawyer_joint_effort_controller.cpp
+  src/sawyer_head_controller.cpp
 )
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
+
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}

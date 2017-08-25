@@ -5,6 +5,16 @@ robot:
     type: joint_state_controller/JointStateController
     publish_rate: 50
 
+  # Sawyer SDK Controllers: Head --------------------------
+  head_position_controller:
+    type: sawyer_sim_controllers/SawyerHeadController
+    topic_command: /robot/head/command_head_pan
+    topic_state: /robot/head/head_state
+    joints:
+          head_controller:
+            joint: head_pan
+            pid: {p: 700.0, i: 0.01, d: 100.0}
+
   # Sawyer SDK Controllers: Position --------------------------
   right_joint_position_controller:
     type: sawyer_sim_controllers/SawyerPositionController
