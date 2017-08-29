@@ -9,7 +9,7 @@
 - git:
     local-name: sawyer_robot
     uri: https://github.com/RethinkRobotics/sawyer_robot.git
-    version: simulator
+    version: development
 - git:
     local-name: sawyer_simulator
     uri: https://github.com/RethinkRobotics/sawyer_simulator.git
