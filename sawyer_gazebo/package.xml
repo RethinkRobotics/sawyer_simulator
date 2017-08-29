@@ -67,6 +67,8 @@
   <run_depend>kdl_parser</run_depend>
   <run_depend>tf_conversions</run_depend>
   <run_depend>sawyer_hardware_interface</run_depend>
+  <run_depend>image_proc</run_depend>
+  <run_depend>nodelet</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
