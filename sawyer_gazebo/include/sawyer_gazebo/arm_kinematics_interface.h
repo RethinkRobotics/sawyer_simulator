@@ -48,7 +48,7 @@ public:
 bool init(ros::NodeHandle& nh, std::string side);
 
 private:
-std::string side_, root_name_, tip_name_, hand_camera_name_;
+std::string side_, root_name_, tip_name_, camera_name_;
 KDL::Tree tree_;
 struct Kinematics
 {

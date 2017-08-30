@@ -24,9 +24,9 @@
   <!-- Load Parameters to the ROS Parameter Server -->
   <rosparam command="load" file="$(find sawyer_description)/params/named_poses.yaml" />
   <rosparam command="load" file="$(find sawyer_gazebo)/config/params.yaml" />
-  <param name="robot/root_name" value="base" />
-  <param name="robot/tip_name" value="right_hand" />
-  <param name="robot/hand_camera_name" value="right_hand_camera" />
+  <param name="robot/limb/right/root_name" value="base" />
+  <param name="robot/limb/right/tip_name" value="right_hand" />
+  <param name="robot/limb/right/camera_name" value="right_hand_camera" />
 
 
   <!-- We resume the logic in empty_world.launch, changing the name of the world to be launched -->
