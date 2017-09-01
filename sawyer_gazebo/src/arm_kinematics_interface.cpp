@@ -44,7 +44,7 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side)
     return false;
   }
   // Init Solvers to default hand camera
-  if (!createKinematicChain(hand_camera_name_))
+  if (!createKinematicChain(camera_name_))
   {
     return false;
   }
@@ -104,19 +104,19 @@ bool ArmKinematicsInterface::parseParams(const ros::NodeHandle& nh)
         "Could not load the xml from parameter server: %s", urdf_xml.c_str());
     return false;
   }
-  if (!nh.getParam("root_name", root_name_))
+  if (!nh.getParam("limb/"+side_+"/root_name", root_name_))
   {
     ROS_FATAL_NAMED("kinematics",
-        "No tip name for gravity found on parameter server");
+        "No root name for gravity found on parameter server");
     return false;
   }
-  if (!nh.getParam("tip_name", tip_name_))
+  if (!nh.getParam("limb/"+side_+"/tip_name", tip_name_))
   {
     ROS_FATAL_NAMED("kinematics",
         "No tip name found on parameter server");
     return false;
   }
-  if (!nh.getParam("hand_camera_name", hand_camera_name_))
+  if (!nh.getParam("limb/"+side_+"/camera_name", camera_name_))
   {
     ROS_FATAL_NAMED("kinematics",
         "No hand camera name found on parameter server");
@@ -352,7 +352,7 @@ void ArmKinematicsInterface::publishEndpointState()
   if (joint_state.get())
   {
     intera_core_msgs::EndpointStates endpoint_states;
-    const auto frames = {tip_name_, hand_camera_name_};
+    const auto frames = {tip_name_, camera_name_};
     for(const auto& frame : frames)
     {
       intera_core_msgs::EndpointState endpoint_state;

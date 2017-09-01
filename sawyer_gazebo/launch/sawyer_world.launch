@@ -24,9 +24,9 @@
   <!-- Load Parameters to the ROS Parameter Server -->
   <rosparam command="load" file="$(find sawyer_description)/params/named_poses.yaml" />
   <rosparam command="load" file="$(find sawyer_gazebo)/config/params.yaml" />
-  <param name="robot/root_name" value="base" />
-  <param name="robot/tip_name" value="right_hand" />
-  <param name="robot/hand_camera_name" value="right_hand_camera" />
+  <param name="robot/limb/right/root_name" value="base" />
+  <param name="robot/limb/right/tip_name" value="right_hand" />
+  <param name="robot/limb/right/camera_name" value="right_hand_camera" />
 
 
   <!-- We resume the logic in empty_world.launch, changing the name of the world to be launched -->
@@ -58,5 +58,14 @@
       <arg name="right_electric_gripper" value="$(arg right_electric_gripper)"/>
       <arg name="gui" value="$(arg gui)" />
   </include>
+
+  <!-- sawyer cameras launch file -->
+  <arg name="wrist_camera" default="right_hand_camera" />
+  <arg name="head_camera"  default="head_camera" />
+  <include file="$(find sawyer_gazebo)/launch/sawyer_sim_cameras.launch">
+      <arg name="wrist_camera" value="$(arg wrist_camera)" />
+      <arg name="head_camera" value="$(arg head_camera)" />
+  </include>
+
 
 </launch>
