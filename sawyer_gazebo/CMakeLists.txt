@@ -15,6 +15,7 @@ find_package(catkin
     std_msgs
     kdl_parser
     tf_conversions
+    sns_ik_lib
 )
 
 # Depend on system install of Gazebo
@@ -31,6 +32,7 @@ catkin_package(
   roscpp
   kdl_parser
   tf_conversions
+  sns_ik_lib
  INCLUDE_DIRS
   include
  LIBRARIES
