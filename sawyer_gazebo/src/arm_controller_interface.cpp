@@ -24,16 +24,10 @@ void ArmControllerInterface::init(ros::NodeHandle& nh, std::string side,
   current_mode_ = -1;
   side_ = side;
   controller_manager_ = controller_manager;
-  speed_ratio_sub_ = nh.subscribe("limb/"+side_+"/set_speed_ratio", 1,
-                       &ArmControllerInterface::speedRatioCallback, this);
   joint_command_timeout_sub_ = nh.subscribe("limb/"+side_+"/joint_command_timeout", 1,
                        &ArmControllerInterface::jointCommandTimeoutCallback, this);
   joint_command_sub_ = nh.subscribe("limb/"+side_+"/joint_command", 1,
                        &ArmControllerInterface::jointCommandCallback, this);
-}
-
-void ArmControllerInterface::speedRatioCallback(const std_msgs::Float64 msg) {
-  ROS_INFO_STREAM_NAMED("ros_control_plugin", "Data: " << msg.data);
 }
 
 void ArmControllerInterface::jointCommandTimeoutCallback(const std_msgs::Float64 msg) {
