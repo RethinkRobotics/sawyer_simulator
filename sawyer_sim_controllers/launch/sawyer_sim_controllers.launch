@@ -2,7 +2,7 @@
 <launch>
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
-  <arg name="right_electric_gripper" default="false"/>
+  <arg name="electric_gripper" default="false"/>
   <arg name="gui" default="false"/>
 
   <!-- Load joint controller configurations from YAML file to parameter server -->

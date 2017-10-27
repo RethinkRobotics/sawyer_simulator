@@ -31,9 +31,11 @@
 #include <kdl/chainidsolver_recursive_newton_euler.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainfksolvervel_recursive.hpp>
+#include <sns_ik/sns_ik.hpp>
 
 #include <kdl/jntarray.hpp>
 #include <kdl/tree.hpp>
+#include <urdf/model.h>
 
 namespace sawyer_gazebo
 {
@@ -47,19 +49,21 @@ public:
   */
 bool init(ros::NodeHandle& nh, std::string side);
 
-private:
-std::string side_, root_name_, tip_name_, camera_name_;
-KDL::Tree tree_;
 struct Kinematics
 {
-    KDL::Chain chain;
-    std::unique_ptr<KDL::ChainFkSolverPos_recursive> fk_pos_solver;
-    std::unique_ptr<KDL::ChainFkSolverVel_recursive> fk_vel_solver;
-    std::unique_ptr<KDL::ChainIdSolver_RNE>         gravity_solver;
-    /*std::unique_ptr<KDL::ChainFDSolverTau>           fk_eff_solver; TODO(imcmahon)
-    std::unique_ptr<KDL::ChainIkSolverVel_pinv> ik_solver_vel;
-    std::unique_ptr<KDL::ChainIkSolverPos_NR_JL> ik_solver_pos;*/
+  KDL::Chain chain;
+  std::vector<std::string> joint_names;
+  std::unique_ptr<KDL::ChainFkSolverPos_recursive> fk_pos_solver;
+  std::unique_ptr<KDL::ChainFkSolverVel_recursive> fk_vel_solver;
+  std::unique_ptr<KDL::ChainIdSolver_RNE>         gravity_solver;
+  std::unique_ptr<sns_ik::SNS_IK>                     ik_solver;
+  /*std::unique_ptr<KDL::ChainFDSolverTau>           fk_eff_solver; TODO(imcmahon)*/
 };
+private:
+std::string side_, root_name_, tip_name_, camera_name_, gravity_tip_name_;
+urdf::Model robot_model_;
+KDL::Tree tree_;
+std::map<std::string, double> acceleration_map_;
 std::map<std::string, Kinematics> kinematic_chain_map_;
 
 realtime_tools::RealtimeBox< std::shared_ptr<const intera_core_msgs::JointCommand> > joint_command_buffer_;
@@ -94,6 +98,8 @@ void jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg);
  */
 void jointStateCallback(const sensor_msgs::JointStateConstPtr& msg);
 
+/* Method to publish the Gravity Compensation Torques
+ */
 void publishGravityTorques(); // TODO(imcmahon): publish gravity
 
 /* Method to publish the endpoint state message
@@ -112,7 +118,10 @@ bool parseParams(const ros::NodeHandle& nh);
 bool servicePositionFK(intera_core_msgs::SolvePositionFK::Request& req,
                        intera_core_msgs::SolvePositionFK::Response& res);
 
-/* TODO(imcmahon): IK Service */
+/* Method to service the Inverse Kinematics request of any
+ * kinematic chain starting at the "base"
+ * @returns true to conform to ROS Service signature
+ */
 bool servicePositionIK(intera_core_msgs::SolvePositionIK::Request& req,
                        intera_core_msgs::SolvePositionIK::Response& res);
 
@@ -121,6 +130,15 @@ bool servicePositionIK(intera_core_msgs::SolvePositionIK::Request& req,
  *  @returns true if successful
  */
 bool computePositionFK(const Kinematics& kin, const KDL::JntArray& jnt_pos, geometry_msgs::Pose& result);
+
+/* Method to calculate the position IK for the required geometry_msg::Pose
+ * with the result stored in KDL::JntArray
+ *  @returns true if successful
+ */
+bool computePositionIK(const Kinematics& kin, const geometry_msgs::Pose& cart_pose,
+                       const KDL::JntArray& jnt_nullspace_bias,
+                       const KDL::JntArray& jnt_seed, KDL::JntArray& result);
+
 
 /* Method to calculate the velocity FK for the required joint velocities in rad/sec
  * with the result stored in geometry_msgs::Twist
@@ -138,9 +156,19 @@ bool computeGravityFK(const Kinematics& kin, const KDL::JntArray& jnt_pos,
 /* Method to break down a JointState message object into the corresponding
  * KDL position, velocity, and effort Joint Arrays
  */
-void jointStateToKDL(const sensor_msgs::JointState& joint_configuration, const KDL::Chain& chain,
-                     KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff,
-                     std::vector<std::string>& jnt_names);
+void jointStateToKDL(const sensor_msgs::JointState& joint_configuration, const Kinematics& kin,
+                     KDL::JntArray& jnt_pos, KDL::JntArray& jnt_vel, KDL::JntArray& jnt_eff);
+
+/* Method to break down a JointState message object into the corresponding
+ * the KDL position Joint Array
+ */
+void jointStatePositionToKDL(const sensor_msgs::JointState& joint_configuration,
+                             const Kinematics& kin, KDL::JntArray& jnt_pos)
+{
+  KDL::JntArray jnt_vel, jnt_eff;
+  jointStateToKDL(joint_configuration, kin, jnt_pos, jnt_vel, jnt_eff);
+};
+
 };
 }  // namespace sawyer_gazebo
 #endif  // SAWYER_GAZEBO_ARM_KINEMATICS_INTERFACE_H
