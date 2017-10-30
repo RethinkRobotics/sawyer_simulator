@@ -26,22 +26,22 @@ robot:
         pid: {p: 700,  i: 0.01, d: 100}
       right_j1_controller:
         joint: right_j1
-        pid: {p: 10000,  i: 100, d: 100}
+        pid: {p: 100,  i: 100, d: 100}
       right_j2_controller:
         joint: right_j2
-        pid: {p: 10000,  i: 100, d: 100}
+        pid: {p: 100,  i: 100, d: 100}
       right_j3_controller:
         joint: right_j3
-        pid: {p: 10000,  i: 100, d: 100}
+        pid: {p: 100,  i: 100, d: 100}
       right_j4_controller:
         joint: right_j4
-        pid: {p: 10000,  i: 100, d: 100}
+        pid: {p: 100,  i: 100, d: 100}
       right_j5_controller:
         joint: right_j5
-        pid: {p: 10000,  i: 100, d: 100}
+        pid: {p: 100,  i: 100, d: 100}
       right_j6_controller:
         joint: right_j6
-        pid: {p: 10000,  i: 100, d: 100}
+        pid: {p: 100,  i: 100, d: 100}
 
   # Sawyer SDK Controllers: Velocity --------------------------
   right_joint_velocity_controller:
