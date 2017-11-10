@@ -37,6 +37,10 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side)
   {
     return false;
   }
+
+  // Limits must be retrieved before any Kinematics object is created
+  joint_limits_ = retrieveJointLimits();
+
   // Init Solvers to default endpoint
   if (!createKinematicChain(tip_name_))
   {
@@ -72,8 +76,47 @@ bool ArmKinematicsInterface::init(ros::NodeHandle& nh, std::string side)
                   &ArmKinematicsInterface::servicePositionIK, this);
   // Update at 100Hz
   update_timer_ = nh.createTimer(100, &ArmKinematicsInterface::update, this);
+  joint_limits_pub_ = nh.advertise<intera_core_msgs::JointLimits>(
+                            "joint_limits", 1, true);
+  joint_limits_pub_.publish(joint_limits_);
   return true;
 }
+
+intera_core_msgs::JointLimits ArmKinematicsInterface::retrieveJointLimits()
+{
+  auto joint_limits = intera_core_msgs::JointLimits();
+  // Cycle through all tree joints,
+  for (const auto& kv : tree_.getSegments())
+  {
+    auto jnt = kv.second.segment.getJoint();
+    if (jnt.getTypeName() == "None" || jnt.getTypeName() == "Unknown")
+      continue;
+    auto joint_name = kv.second.segment.getJoint().getName();
+    auto joint_limits_ptr = robot_model_.getJoint(joint_name)->limits;
+    // Save off any joint that has limits
+    if (joint_limits_ptr)
+    {
+      joint_limits.joint_names.push_back(joint_name);
+      joint_limits.position_lower.push_back(joint_limits_ptr->lower);
+      joint_limits.position_upper.push_back(joint_limits_ptr->upper);
+      joint_limits.velocity.push_back(joint_limits_ptr->velocity);
+      joint_limits.effort.push_back(joint_limits_ptr->effort);
+      // Acceleration grabbed from previously retrieved Parameter Server
+      if (acceleration_map_.find(joint_name) != acceleration_map_.end())
+      {
+        joint_limits.accel.push_back(acceleration_map_[joint_name]);
+      }
+      else
+      {
+        ROS_INFO_NAMED("kinematics", "Unable to find Acceleration values for joint %s...",
+                       joint_name.c_str());
+        joint_limits.accel.push_back(8.0);
+      }
+    }
+  }
+  return joint_limits;
+}
+
 
 bool ArmKinematicsInterface::createKinematicChain(std::string tip_name)
 {
@@ -91,41 +134,38 @@ bool ArmKinematicsInterface::createKinematicChain(std::string tip_name)
     return false;
   }
   // Save off Joint Names
-  auto num_jnts = kin.chain.getNrOfJoints();
-  auto num_segs = kin.chain.getNrOfSegments();
-  kin.joint_names.resize(num_jnts);
-  size_t jnt_idx = 0;
-  for (size_t seg_idx = 0; seg_idx < num_segs; seg_idx++)
+  for (size_t seg_idx = 0; seg_idx < kin.chain.getNrOfSegments(); seg_idx++)
   {
     const auto& jnt = kin.chain.getSegment(seg_idx).getJoint();
     if (jnt.getTypeName() == "None" || jnt.getTypeName() == "Unknown")
       continue;
-    kin.joint_names[jnt_idx++] = kin.chain.getSegment(seg_idx).getJoint().getName();
+    kin.joint_names.push_back(kin.chain.getSegment(seg_idx).getJoint().getName());
   }
   // Construct Solvers
   kin.gravity_solver = std::make_unique<KDL::ChainIdSolver_RNE>(kin.chain, KDL::Vector(0.0, 0.0, -9.8));
   kin.fk_pos_solver = std::make_unique<KDL::ChainFkSolverPos_recursive>(kin.chain);
   kin.fk_vel_solver = std::make_unique<KDL::ChainFkSolverVel_recursive>(kin.chain);
+  auto num_jnts = kin.joint_names.size();
   KDL::JntArray q_min(num_jnts);
   KDL::JntArray q_max(num_jnts);
   KDL::JntArray v_max(num_jnts);
   KDL::JntArray a_max(num_jnts);
-  for (size_t i=0; i < num_jnts; i++)
+  for (size_t i = 0; i < num_jnts; i++)
   {
-    auto joint_limits_ptr = robot_model_.getJoint(kin.joint_names[i])->limits;
-    if (joint_limits_ptr)
+    auto joint_limit_idx = std::distance(joint_limits_.joint_names.begin(),
+                                   std::find(joint_limits_.joint_names.begin(),
+                                             joint_limits_.joint_names.end(),
+                                             kin.joint_names[i]));
+    if (joint_limit_idx < joint_limits_.joint_names.size())
     {
-      q_min(i) = joint_limits_ptr->lower;
-      q_max(i) = joint_limits_ptr->upper;
-      v_max(i) = joint_limits_ptr->velocity;
-    }
-    if (acceleration_map_.find(kin.joint_names[i]) != acceleration_map_.end())
-    {
-      a_max(i) = acceleration_map_[kin.joint_names[i]];
+      q_min(i) = joint_limits_.position_lower[joint_limit_idx];
+      q_max(i) = joint_limits_.position_upper[joint_limit_idx];
+      v_max(i) = joint_limits_.velocity[joint_limit_idx];
+      a_max(i) = joint_limits_.accel[joint_limit_idx];
     }
     else
     {
-      ROS_WARN_NAMED("kinematics", "Unable to find Acceleration values for joint %s",
+      ROS_WARN_NAMED("kinematics", "Unable to find Joint Limits for joint %s",
                      kin.joint_names[i].c_str());
     }
   }
