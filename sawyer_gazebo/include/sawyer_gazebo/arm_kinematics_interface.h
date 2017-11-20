@@ -24,6 +24,7 @@
 
 #include <sensor_msgs/JointState.h>
 #include <intera_core_msgs/JointCommand.h>
+#include <intera_core_msgs/JointLimits.h>
 #include <intera_core_msgs/SolvePositionFK.h>
 #include <intera_core_msgs/SolvePositionIK.h>
 #include <geometry_msgs/Twist.h>
@@ -62,6 +63,7 @@ struct Kinematics
 private:
 std::string side_, root_name_, tip_name_, camera_name_, gravity_tip_name_;
 urdf::Model robot_model_;
+intera_core_msgs::JointLimits joint_limits_;
 KDL::Tree tree_;
 std::map<std::string, double> acceleration_map_;
 std::map<std::string, Kinematics> kinematic_chain_map_;
@@ -72,6 +74,7 @@ realtime_tools::RealtimeBox< std::shared_ptr<const sensor_msgs::JointState> > jo
 ros::Subscriber joint_command_sub_;
 ros::Subscriber joint_state_sub_;
 
+ros::Publisher joint_limits_pub_;
 ros::Publisher endpoint_state_pub_;
 ros::Publisher tip_state_pub_;
 long endpoint_state_seq_;
@@ -86,6 +89,11 @@ ros::Timer update_timer_;
 /* Method to be invoked at a regular interval for publishing states
  */
 void update(const ros::TimerEvent& e);
+
+/* Method to retrieve and populate joint limits from URDF and parameters
+ */
+intera_core_msgs::JointLimits retrieveJointLimits();
+
 
 /* Method create a new kinematic chain starting at "base" and ending at "tip_name"
  * @returns true if the new chain was added to the kinematic chains map
