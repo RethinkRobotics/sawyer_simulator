@@ -41,6 +41,10 @@ add_library(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 
 
+if(catkin_EXPORTED_TARGETS)
+  add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+endif()
+
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
