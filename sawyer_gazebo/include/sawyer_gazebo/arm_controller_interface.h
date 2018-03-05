@@ -22,6 +22,7 @@
 #include <controller_manager/controller_manager.h>
 
 #include <std_msgs/Float64.h>
+#include <realtime_tools/realtime_box.h>
 #include <intera_core_msgs/JointCommand.h>
 
 
@@ -37,6 +38,12 @@ namespace sawyer_gazebo {
     std::mutex mtx_;
     int current_mode_;
     std::string side_;
+
+    realtime_tools::RealtimeBox< std::shared_ptr<const ros::Duration > > box_timeout_length_;
+    realtime_tools::RealtimeBox< std::shared_ptr<const ros::Time > > box_cmd_timeout_;
+
+    ros::Timer cmd_timeout_timer_;
+
     ros::Subscriber joint_command_timeout_sub_;
     ros::Subscriber joint_command_sub_;
     boost::shared_ptr<controller_manager::ControllerManager> controller_manager_;
@@ -45,6 +52,8 @@ namespace sawyer_gazebo {
     void jointCommandTimeoutCallback(const std_msgs::Float64 msg);
     void jointCommandCallback(const intera_core_msgs::JointCommandConstPtr& msg);
     std::string getControllerString(std::string mode_str);
+    bool switchControllers(int control_mode);
+    void commandTimeoutCheck(const ros::TimerEvent& e);
 
 
   };
