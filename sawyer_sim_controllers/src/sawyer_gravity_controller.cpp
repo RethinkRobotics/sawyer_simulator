@@ -23,16 +23,33 @@ namespace sawyer_sim_controllers {
     // TODO: use constant, don't hardcode ctrl_subtype ("GRAVITY_COMPENSATION")
     if(!sawyer_sim_controllers::JointArrayController<sawyer_effort_controllers::JointEffortController>::init(hw, n, "GRAVITY_COMPENSATION")) {
       return false;
-    } else {
-      std::string topic_name;
-      if (n.getParam("topic", topic_name)) {
-        ros::NodeHandle nh("~");
-        sub_joint_command_ = nh.subscribe(topic_name, 1, &SawyerGravityController::gravityCommandCB, this);
-      } else {
-        sub_joint_command_ = n.subscribe("gravity_command", 1, &SawyerGravityController::gravityCommandCB, this);
-      }
     }
+    std::string command_topic;
+    if (n.getParam("command_topic", command_topic)) {
+      ros::NodeHandle nh("~");
+      sub_joint_command_ = nh.subscribe(command_topic, 1, &SawyerGravityController::gravityCommandCB, this);
+    } else {
+      sub_joint_command_ = n.subscribe("gravity_command", 1, &SawyerGravityController::gravityCommandCB, this);
+    }
+    std::string disable_topic;
+    if (n.getParam("disable_topic", disable_topic)) {
+      ros::NodeHandle nh("~");
+      sub_gravity_disable_ = nh.subscribe(disable_topic, 1, &SawyerGravityController::gravityDisableCB, this);
+    } else {
+      sub_gravity_disable_ = n.subscribe("gravity_disable", 1, &SawyerGravityController::gravityDisableCB, this);
+    }
+    // In order to disable the gravity compensation torques,
+    // an empty message should be published at a frequency greater than (1/disable_timeout) Hz
+    double disable_timeout;
+    n.param<double>("disable_timeout", disable_timeout, 0.2);
+    gravity_disable_timeout_ = ros::Duration(disable_timeout);
     return true;
+  }
+
+  void SawyerGravityController::gravityDisableCB(const std_msgs::Empty& msg) {
+      auto p_disable_msg_time = std::make_shared<ros::Time>(ros::Time::now());
+      box_disable_time_.set(p_disable_msg_time);
+      ROS_INFO_STREAM_THROTTLE(60, "Gravity compensation torques are disabled...");
   }
 
   void SawyerGravityController::gravityCommandCB(const intera_core_msgs::SEAJointStateConstPtr& msg) {
@@ -41,10 +58,13 @@ namespace sawyer_sim_controllers {
       if (msg->name.size() != msg->gravity_only.size()) {
         ROS_ERROR_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Gravity commands size does not match joints size");
       }
+      std::shared_ptr<const ros::Time>  p_disable_msg_time;
+      box_disable_time_.get(p_disable_msg_time);
+      bool enable_gravity = !p_disable_msg_time || ((ros::Time::now() - *p_disable_msg_time.get()) > gravity_disable_timeout_);
       for (int i = 0; i < msg->name.size(); i++) {
         Command cmd = Command();
         cmd.name_ = msg->name[i];
-        cmd.effort_ = msg->gravity_only[i];
+        cmd.effort_ = enable_gravity ? msg->gravity_only[i] : 0.0;
         commands.push_back(cmd);
       }
       command_buffer_.writeFromNonRT(commands);

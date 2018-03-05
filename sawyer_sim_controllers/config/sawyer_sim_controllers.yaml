@@ -100,7 +100,9 @@ robot:
   # Sawyer SDK Controllers: Gravity Compensation ------------
   right_joint_gravity_controller:
     type: sawyer_sim_controllers/SawyerGravityController
-    topic: /robot/limb/right/gravity_compensation_torques
+    command_topic: /robot/limb/right/gravity_compensation_torques
+    disable_topic: /robot/limb/right/suppress_gravity_compensation
+    disable_timeout: 0.2
     joints:
       right_j0_controller:
         joint: right_j0
