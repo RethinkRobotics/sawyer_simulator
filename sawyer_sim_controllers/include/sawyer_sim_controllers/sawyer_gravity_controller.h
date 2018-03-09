@@ -19,8 +19,11 @@
 
 #include <sawyer_sim_controllers/joint_array_controller.h>
 #include <intera_core_msgs/SEAJointState.h>
+#include <std_msgs/Empty.h>
+#include <realtime_tools/realtime_box.h>
 #include <sawyer_sim_controllers/sawyer_joint_effort_controller.h>
 #include <ros/node_handle.h>
+#include <ros/time.h>
 
 #include <control_toolbox/pid.h>
 
@@ -37,8 +40,12 @@ namespace sawyer_sim_controllers
 
   private:
     ros::Subscriber sub_joint_command_;
+    ros::Subscriber sub_gravity_disable_;
+    realtime_tools::RealtimeBox< std::shared_ptr<const ros::Time > > box_disable_time_;
+    ros::Duration gravity_disable_timeout_;
 
     void gravityCommandCB(const intera_core_msgs::SEAJointStateConstPtr& msg);
+    void gravityDisableCB(const std_msgs::Empty& msg);
   };
 }
 
