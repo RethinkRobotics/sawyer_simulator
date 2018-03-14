@@ -1,0 +1,127 @@
+robot:
+  # Publish all joint states -----------------------------------
+
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 100
+
+  # Sawyer SDK Controllers: Head --------------------------
+  head_position_controller:
+    type: sawyer_sim_controllers/SawyerHeadController
+    topic_command: /robot/head/command_head_pan
+    topic_state: /robot/head/head_state
+    joints:
+          head_controller:
+            joint: head_pan
+            pid: {p: 100.0, i: 1.0, d: 10.0}
+
+  # Sawyer SDK Controllers: Position --------------------------
+  right_joint_position_controller:
+    type: sawyer_sim_controllers/SawyerPositionController
+    topic_joint_command: /robot/limb/right/joint_command
+    topic_set_speed_ratio: /robot/limb/right/set_speed_ratio
+    joints:
+      right_j0_controller:
+        joint: right_j0
+        pid: {p: 500,  i: 0.01, d: 10}
+      right_j1_controller:
+        joint: right_j1
+        pid: {p: 700,  i: 0.01, d: 100}
+      right_j2_controller:
+        joint: right_j2
+        pid: {p: 500,  i: 0.01, d: 50}
+      right_j3_controller:
+        joint: right_j3
+        pid: {p: 500,  i: 0.01, d: 50}
+      right_j4_controller:
+        joint: right_j4
+        pid: {p: 600,  i: 1.0, d: 100}
+      right_j5_controller:
+        joint: right_j5
+        pid: {p: 1500,  i: 0.01, d: 120}
+      right_j6_controller:
+        joint: right_j6
+        pid: {p: 50,  i: 10, d: 10}
+
+  # Sawyer SDK Controllers: Velocity --------------------------
+  right_joint_velocity_controller:
+    type: sawyer_sim_controllers/SawyerVelocityController
+    topic: /robot/limb/right/joint_command
+    joints:
+      right_j0_controller:
+        joint: right_j0
+        pid: {p: 10,  i: 0.0, d: 0.1}
+      right_j1_controller:
+        joint: right_j1
+        pid: {p: 100,  i: 1.0, d: 0.1}
+      right_j2_controller:
+        joint: right_j2
+        pid: {p: 0.05,  i: 0.0, d: 0.01}
+      right_j3_controller:
+        joint: right_j3
+        pid: {p: 0.5,  i: 0.01, d: 0.1}
+      right_j4_controller:
+        joint: right_j4
+        pid: {p: 1.0,  i: 0.0, d: 0.01}
+      right_j5_controller:
+        joint: right_j5
+        pid: {p: 0.05,  i: 0.0, d: 0.01}
+      right_j6_controller:
+        joint: right_j6
+        pid: {p: 0.05,  i: 0.0, d: 0.01}
+
+  # Sawyer SDK Controllers: Effort --------------------------
+  right_joint_effort_controller:
+    type: sawyer_sim_controllers/SawyerEffortController
+    topic: /robot/limb/right/joint_command
+    joints:
+      right_j0_controller:
+        joint: right_j0
+        pid: {p: 700,  i: 0.01, d: 100}
+      right_j1_controller:
+        joint: right_j1
+        pid: {p: 100,  i: 100, d: 100}
+      right_j2_controller:
+        joint: right_j2
+        pid: {p: 100,  i: 100, d: 100}
+      right_j3_controller:
+        joint: right_j3
+        pid: {p: 100,  i: 100, d: 100}
+      right_j4_controller:
+        joint: right_j4
+        pid: {p: 100,  i: 100, d: 100}
+      right_j5_controller:
+        joint: right_j5
+        pid: {p: 100,  i: 100, d: 100}
+      right_j6_controller:
+        joint: right_j6
+        pid: {p: 100,  i: 100, d: 100}
+
+  # Sawyer SDK Controllers: Gravity Compensation ------------
+  right_joint_gravity_controller:
+    type: sawyer_sim_controllers/SawyerGravityController
+    command_topic: /robot/limb/right/gravity_compensation_torques
+    disable_topic: /robot/limb/right/suppress_gravity_compensation
+    disable_timeout: 0.2
+    joints:
+      right_j0_controller:
+        joint: right_j0
+        pid: {p: 700,  i: 0.01, d: 100}
+      right_j1_controller:
+        joint: right_j1
+        pid: {p: 100,  i: 100, d: 100}
+      right_j2_controller:
+        joint: right_j2
+        pid: {p: 100,  i: 100, d: 100}
+      right_j3_controller:
+        joint: right_j3
+        pid: {p: 100,  i: 100, d: 100}
+      right_j4_controller:
+        joint: right_j4
+        pid: {p: 100,  i: 100, d: 100}
+      right_j5_controller:
+        joint: right_j5
+        pid: {p: 100,  i: 100, d: 100}
+      right_j6_controller:
+        joint: right_j6
+        pid: {p: 100,  i: 100, d: 100}

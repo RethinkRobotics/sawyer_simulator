@@ -1,1 +1,0 @@
-# sawyer_simulator

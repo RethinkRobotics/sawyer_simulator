@@ -1,0 +1,12 @@
+robot_config:
+    joint_config:
+        joint_acceleration_limit:
+            head_pan: 10.0 # rad / sec^2
+            right_j0: 10.0 # rad / sec^2
+            right_j1: 8.0  # rad / sec^2
+            right_j2: 10.0 # rad / sec^2
+            right_j3: 10.0 # rad / sec^2
+            right_j4: 12.0 # rad / sec^2
+            right_j5: 12.0 # rad / sec^2
+            right_j6: 12.0 # rad / sec^2
+
