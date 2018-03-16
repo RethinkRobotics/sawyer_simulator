@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   intera_core_msgs
   realtime_tools
   sawyer_hardware_interface
+  kdl_parser
 )
 
 catkin_package(
