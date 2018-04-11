@@ -23,25 +23,25 @@ robot:
     joints:
       right_j0_controller:
         joint: right_j0
-        pid: {p: 500,  i: 0.01, d: 10}
+        pid: {p: 500.0,  i: 10.0, d: 25.0}
       right_j1_controller:
         joint: right_j1
-        pid: {p: 700,  i: 0.01, d: 100}
+        pid: {p: 400.0,  i: 10.0, d: 30.0}
       right_j2_controller:
         joint: right_j2
-        pid: {p: 500,  i: 0.01, d: 50}
+        pid: {p: 250.0,  i: 10.0, d: 30.0}
       right_j3_controller:
         joint: right_j3
-        pid: {p: 500,  i: 0.01, d: 50}
+        pid: {p: 300.0,  i: 10.0, d: 50.0}
       right_j4_controller:
         joint: right_j4
-        pid: {p: 600,  i: 1.0, d: 100}
+        pid: {p: 300.0,  i: 10.0, d: 8.0}
       right_j5_controller:
         joint: right_j5
-        pid: {p: 1500,  i: 0.01, d: 120}
+        pid: {p: 100.0,  i: 1.0, d: 5.0}
       right_j6_controller:
         joint: right_j6
-        pid: {p: 50,  i: 10, d: 10}
+        pid: {p: 50.0,  i: 10.0, d: 4.0}
 
   # Sawyer SDK Controllers: Velocity --------------------------
   right_joint_velocity_controller:
@@ -77,25 +77,18 @@ robot:
     joints:
       right_j0_controller:
         joint: right_j0
-        pid: {p: 700,  i: 0.01, d: 100}
       right_j1_controller:
         joint: right_j1
-        pid: {p: 100,  i: 100, d: 100}
       right_j2_controller:
         joint: right_j2
-        pid: {p: 100,  i: 100, d: 100}
       right_j3_controller:
         joint: right_j3
-        pid: {p: 100,  i: 100, d: 100}
       right_j4_controller:
         joint: right_j4
-        pid: {p: 100,  i: 100, d: 100}
       right_j5_controller:
         joint: right_j5
-        pid: {p: 100,  i: 100, d: 100}
       right_j6_controller:
         joint: right_j6
-        pid: {p: 100,  i: 100, d: 100}
 
   # Sawyer SDK Controllers: Gravity Compensation ------------
   right_joint_gravity_controller:
@@ -106,22 +99,15 @@ robot:
     joints:
       right_j0_controller:
         joint: right_j0
-        pid: {p: 700,  i: 0.01, d: 100}
       right_j1_controller:
         joint: right_j1
-        pid: {p: 100,  i: 100, d: 100}
       right_j2_controller:
         joint: right_j2
-        pid: {p: 100,  i: 100, d: 100}
       right_j3_controller:
         joint: right_j3
-        pid: {p: 100,  i: 100, d: 100}
       right_j4_controller:
         joint: right_j4
-        pid: {p: 100,  i: 100, d: 100}
       right_j5_controller:
         joint: right_j5
-        pid: {p: 100,  i: 100, d: 100}
       right_j6_controller:
         joint: right_j6
-        pid: {p: 100,  i: 100, d: 100}

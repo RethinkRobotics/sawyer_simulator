@@ -55,7 +55,7 @@ namespace sawyer_sim_controllers {
   void SawyerGravityController::gravityCommandCB(const intera_core_msgs::SEAJointStateConstPtr& msg) {
 
       std::vector<Command> commands;
-      if (msg->name.size() != msg->gravity_only.size()) {
+      if (msg->name.size() != msg->gravity_model_effort.size()) {
         ROS_ERROR_STREAM_NAMED(JOINT_ARRAY_CONTROLLER_NAME, "Gravity commands size does not match joints size");
       }
       std::shared_ptr<const ros::Time>  p_disable_msg_time;
@@ -64,7 +64,7 @@ namespace sawyer_sim_controllers {
       for (int i = 0; i < msg->name.size(); i++) {
         Command cmd = Command();
         cmd.name_ = msg->name[i];
-        cmd.effort_ = enable_gravity ? msg->gravity_only[i] : 0.0;
+        cmd.effort_ = enable_gravity ? msg->gravity_model_effort[i] : 0.0;
         commands.push_back(cmd);
       }
       command_buffer_.writeFromNonRT(commands);
