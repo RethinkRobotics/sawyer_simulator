@@ -1,10 +1,11 @@
 sawyer_simulator
 ================
 
+Gazebo simulation with emulated interfaces for the Sawyer Research Robot. Please follow the tutorial_ on the Rethink Robotics Wiki to get started with Sawyer in Gazebo.
 
-Gazebo simulation with emulated interfaces for the Sawyer Research Robot. Please follow the instructions on the Rethink Robotics Wiki for getting started:
+.. _tutorial: http://sdk.rethinkrobotics.com/intera/Gazebo_Tutorial
 
-http://sdk.rethinkrobotics.com/intera/Gazebo_Tutorial
+.. image:: sawyer_gazebo/etc/sawyer_gazebo.gif
 
 Code & Tickets
 --------------
@@ -28,8 +29,8 @@ sawyer_simulator Repository Overview
      |
      +-- sawyer_gazebo/                 Gazebo interface for the Sawyer that loads the models into simulation
      |
-     +-- sawyer_hardware_interface/     This emulates the hardware interfaces of Sawyer 
-     | 
+     +-- sawyer_hardware_interface/     This emulates the hardware interfaces of Sawyer
+     |
      +-- sawyer_sim_controllers/        Controller plugins for Sawyer
      |
      +-- sawyer_sim_examples/           Examples specific to Sawyer in Simulation
@@ -52,4 +53,3 @@ Latest Release Information
 --------------------------
 
 http://sdk.rethinkrobotics.com/intera/Release-Changes
-
