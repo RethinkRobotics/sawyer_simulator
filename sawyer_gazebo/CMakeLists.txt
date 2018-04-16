@@ -33,10 +33,8 @@ catkin_package(
   kdl_parser
   tf_conversions
   sns_ik_lib
- INCLUDE_DIRS
-  include
- LIBRARIES
-  sawyer_robot_hw_sim
+ INCLUDE_DIRS include
+ LIBRARIES    sawyer_robot_hw_sim
 )
 
 roslint_cpp()
@@ -79,16 +77,23 @@ install(
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
-install(FILES sawyer_robot_hw_sim_plugins.xml
+install(
+  FILES sawyer_robot_hw_sim_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(
-  DIRECTORY launch worlds
+  DIRECTORY config launch worlds share
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
 install(
-  DIRECTORY scripts/
+  DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(
+  DIRECTORY scripts
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   USE_SOURCE_PERMISSIONS
 )

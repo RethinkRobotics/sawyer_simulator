@@ -40,7 +40,18 @@ add_library(${PROJECT_NAME}
 )
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
+                      ${catkin_LIBRARIES}
+)
+
+install(TARGETS ${PROJECT_NAME}
+	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+install(DIRECTORY config launch
+	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
