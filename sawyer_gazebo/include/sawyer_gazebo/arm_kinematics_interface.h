@@ -27,6 +27,8 @@
 #include <intera_core_msgs/JointLimits.h>
 #include <intera_core_msgs/SolvePositionFK.h>
 #include <intera_core_msgs/SolvePositionIK.h>
+#include <intera_core_msgs/SEAJointState.h>
+
 #include <geometry_msgs/Twist.h>
 
 #include <kdl/chainidsolver_recursive_newton_euler.hpp>
@@ -154,12 +156,13 @@ bool computePositionIK(const Kinematics& kin, const geometry_msgs::Pose& cart_po
  */
 bool computeVelocityFK(const Kinematics& kin, const KDL::JntArrayVel& jnt_vel, geometry_msgs::Twist& result);
 
-/* Method to calculate the gravity torques FK for the required joint positions in rad and
+/* Method to calculate the gravity+coriolis+inertia torques for the required joint positions in rad and
  * joint velocities in rad/sec with the result stored in the provided KDL JointArray
  * @returns true if successful
  */
-bool computeGravityFK(const Kinematics& kin, const KDL::JntArray& jnt_pos,
-                      const KDL::JntArray& jnt_vel, KDL::JntArray& jnt_torques);
+bool computeGravity(const Kinematics& kin, const KDL::JntArray& jnt_pos,
+                    const KDL::JntArray& jnt_vel, const KDL::JntArray& jnt_accel,
+                    KDL::JntArray& jnt_torques);
 
 /* Method to break down a JointState message object into the corresponding
  * KDL position, velocity, and effort Joint Arrays
@@ -176,6 +179,13 @@ void jointStatePositionToKDL(const sensor_msgs::JointState& joint_configuration,
   KDL::JntArray jnt_vel, jnt_eff;
   jointStateToKDL(joint_configuration, kin, jnt_pos, jnt_vel, jnt_eff);
 };
+
+/* Method to break down a JointCommand message object into the corresponding
+ * the SEAJointState message (aka gravity_compensation_torques)
+ */
+void jointCommandToGravityMsg(const std::vector<std::string>& joint_names,
+                              const intera_core_msgs::JointCommand& command_msg,
+                              intera_core_msgs::SEAJointState& gravity_msg);
 
 };
 }  // namespace sawyer_gazebo
