@@ -21,7 +21,7 @@
 
 #include <std_msgs/Empty.h>
 #include <std_msgs/Bool.h>
-#include <intera_core_msgs/AssemblyState.h>
+#include <intera_core_msgs/RobotAssemblyState.h>
 
 
 namespace sawyer_gazebo {
@@ -39,7 +39,7 @@ namespace sawyer_gazebo {
     ros::Subscriber assembly_stop_sub_;
     ros::Subscriber assembly_reset_sub_;
     ros::Timer assembly_state_timer_;
-    realtime_tools::RealtimeBox< std::shared_ptr<const intera_core_msgs::AssemblyState> > assembly_state_buffer_;
+    realtime_tools::RealtimeBox< std::shared_ptr<const intera_core_msgs::RobotAssemblyState> > assembly_state_buffer_;
 
     /**
      * Method to stop the robot and capture the source of the stop
