@@ -22,18 +22,19 @@ namespace sawyer_gazebo {
 void AssemblyInterface::init(ros::NodeHandle& nh) {
     //Default values for the assembly state
     sim_estop_.data = false;
-    std::shared_ptr<intera_core_msgs::AssemblyState> assembly_state(new intera_core_msgs::AssemblyState());
+    std::shared_ptr<intera_core_msgs::RobotAssemblyState> assembly_state(new intera_core_msgs::RobotAssemblyState());
+    assembly_state->homed = true;  // true if homed
     assembly_state->ready = true;  // true if enabled
     assembly_state->enabled = true;  // true if enabled
     assembly_state->stopped = false; // true if stopped -- e-stop asserted
     assembly_state->error = false;  // true if a component of the assembly has an error
     assembly_state->lowVoltage = false;  // true if the robot entered lowVoltage mode
-    assembly_state->estop_button = intera_core_msgs::AssemblyState::ESTOP_BUTTON_UNPRESSED;  // button status
-    assembly_state->estop_source = intera_core_msgs::AssemblyState::ESTOP_SOURCE_NONE;  // If stopped is
+    assembly_state->estop_button = intera_core_msgs::RobotAssemblyState::ESTOP_BUTTON_UNPRESSED;  // button status
+    assembly_state->estop_source = intera_core_msgs::RobotAssemblyState::ESTOP_SOURCE_NONE;  // If stopped is
     is_enabled_ = assembly_state->enabled;
     is_stopped_ = assembly_state->stopped;
     assembly_state_buffer_.set(assembly_state);
-    assembly_state_pub_ = nh.advertise<intera_core_msgs::AssemblyState>("state", 1);
+    assembly_state_pub_ = nh.advertise<intera_core_msgs::RobotAssemblyState>("state", 1);
     assembly_sim_estop_pub_ = nh.advertise<std_msgs::Bool>("sim_estop", 1);
     assembly_state_timer_ = nh.createTimer(100, &AssemblyInterface::update, this);// 100Hz
     assembly_enable_sub_ = nh.subscribe("set_super_enable", 100, &AssemblyInterface::callbackEnable, this);
@@ -42,7 +43,7 @@ void AssemblyInterface::init(ros::NodeHandle& nh) {
 }
 
 void AssemblyInterface::update(const ros::TimerEvent& e){
-    std::shared_ptr<const intera_core_msgs::AssemblyState> assembly_state;
+    std::shared_ptr<const intera_core_msgs::RobotAssemblyState> assembly_state;
     assembly_state_buffer_.get(assembly_state);
     is_enabled_ = assembly_state->enabled;
     is_stopped_ = assembly_state->stopped;
@@ -55,19 +56,20 @@ void AssemblyInterface::update(const ros::TimerEvent& e){
 }
 
 void AssemblyInterface::callbackEnable(const std_msgs::Bool &msg) {
-  std::shared_ptr<intera_core_msgs::AssemblyState> assembly_state(new intera_core_msgs::AssemblyState());
+  std::shared_ptr<intera_core_msgs::RobotAssemblyState> assembly_state(new intera_core_msgs::RobotAssemblyState());
   if (msg.data) {
     assembly_state->enabled = true;
   }
   else {
     assembly_state->enabled = false;
   }
+  assembly_state->homed = true;
   assembly_state->ready = true;
   assembly_state->stopped = false;
   assembly_state->error = false;
   assembly_state->lowVoltage = false;
-  assembly_state->estop_button = intera_core_msgs::AssemblyState::ESTOP_BUTTON_UNPRESSED;
-  assembly_state->estop_source = intera_core_msgs::AssemblyState::ESTOP_SOURCE_NONE;
+  assembly_state->estop_button = intera_core_msgs::RobotAssemblyState::ESTOP_BUTTON_UNPRESSED;
+  assembly_state->estop_source = intera_core_msgs::RobotAssemblyState::ESTOP_SOURCE_NONE;
   assembly_state_buffer_.set(assembly_state);
 }
 
@@ -75,14 +77,15 @@ void AssemblyInterface::callbackEnable(const std_msgs::Bool &msg) {
   * Method to stop the robot and capture the source of the stop
   */
 void AssemblyInterface::callbackStop(const std_msgs::Empty &msg) {
-  std::shared_ptr<intera_core_msgs::AssemblyState> assembly_state(new intera_core_msgs::AssemblyState());
+  std::shared_ptr<intera_core_msgs::RobotAssemblyState> assembly_state(new intera_core_msgs::RobotAssemblyState());
+  assembly_state->homed = true;
   assembly_state->enabled = false;
   assembly_state->ready = false;
   assembly_state->stopped = true;
   assembly_state->error = false;
   assembly_state->lowVoltage = false;
-  assembly_state->estop_button = intera_core_msgs::AssemblyState::ESTOP_BUTTON_UNPRESSED;
-  assembly_state->estop_source = intera_core_msgs::AssemblyState::ESTOP_SOURCE_UNKNOWN;
+  assembly_state->estop_button = intera_core_msgs::RobotAssemblyState::ESTOP_BUTTON_UNPRESSED;
+  assembly_state->estop_source = intera_core_msgs::RobotAssemblyState::ESTOP_SOURCE_UNKNOWN;
   assembly_state_buffer_.set(assembly_state);
 }
 
@@ -90,13 +93,14 @@ void AssemblyInterface::callbackStop(const std_msgs::Empty &msg) {
   * Method resets all the values to False and 0s
   */
 void AssemblyInterface::callbackReset(const std_msgs::Empty &msg) {
-  std::shared_ptr<intera_core_msgs::AssemblyState> assembly_state(new intera_core_msgs::AssemblyState());
+  std::shared_ptr<intera_core_msgs::RobotAssemblyState> assembly_state(new intera_core_msgs::RobotAssemblyState());
+  assembly_state->homed = true;
   assembly_state->enabled = false;
   assembly_state->ready = true;
   assembly_state->stopped = false;
   assembly_state->error = false;
-  assembly_state->estop_button = intera_core_msgs::AssemblyState::ESTOP_BUTTON_UNPRESSED;
-  assembly_state->estop_source = intera_core_msgs::AssemblyState::ESTOP_SOURCE_NONE;
+  assembly_state->estop_button = intera_core_msgs::RobotAssemblyState::ESTOP_BUTTON_UNPRESSED;
+  assembly_state->estop_source = intera_core_msgs::RobotAssemblyState::ESTOP_SOURCE_NONE;
   assembly_state_buffer_.set(assembly_state);
 }
 

@@ -1,3 +1,7 @@
+5.3.0 (2018-8-14)
+---------------------------------
+- Updates the how the RobotAssemblyState message is handled for ESTOP messages
+
 5.2.0 Patch (2018-4-16)
 ---------------------------------
 - Patch release
