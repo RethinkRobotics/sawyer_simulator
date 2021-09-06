@@ -44,6 +44,7 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(${PROJECT_NAME}
                       ${catkin_LIBRARIES}
+		      yaml-cpp
 )
 
 install(TARGETS ${PROJECT_NAME}

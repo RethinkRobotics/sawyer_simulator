@@ -68,7 +68,7 @@ bool HeadInterface::startHead(const ros::NodeHandle& nh, boost::shared_ptr<contr
     auto cv_ptr = std::make_unique<cv_bridge::CvImage>();
     try
     {
-      cv_ptr->image = cv::imread(img_path, CV_LOAD_IMAGE_UNCHANGED);
+      cv_ptr->image = cv::imread(img_path, cv::IMREAD_UNCHANGED);
       if (cv_ptr->image.data)
       {
         cv_ptr->encoding = sensor_msgs::image_encodings::BGR8;
