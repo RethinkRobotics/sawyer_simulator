@@ -51,6 +51,9 @@
   <run_depend>image_proc</run_depend>
   <run_depend>sns_ik_lib</run_depend>
   <run_depend>nodelet</run_depend>
+  <run_depend>image_pipeline</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+  <run_depend>joint_state_controller</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
