@@ -54,7 +54,7 @@ bool init(ros::NodeHandle& nh, std::string side);
 
 struct Kinematics
 {
-  KDL::Chain chain;
+  std::unique_ptr<KDL::Chain> chain;
   std::vector<std::string> joint_names;
   std::unique_ptr<KDL::ChainFkSolverPos_recursive> fk_pos_solver;
   std::unique_ptr<KDL::ChainFkSolverVel_recursive> fk_vel_solver;

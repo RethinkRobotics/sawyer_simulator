@@ -35,7 +35,7 @@ from geometry_msgs.msg import (
     Point,
     Quaternion,
 )
-
+from tf.transformations import quaternion_slerp
 import intera_interface
 
 class PickAndPlace(object):
@@ -54,6 +54,7 @@ class PickAndPlace(object):
 
     def move_to_start(self, start_angles=None):
         print("Moving the {0} arm to start pose...".format(self._limb_name))
+        print("Moving to start angles: ", start_angles)
         if not start_angles:
             start_angles = dict(zip(self._joint_names, [0]*7))
         self._guarded_move_to_joint_position(start_angles)
@@ -79,14 +80,16 @@ class PickAndPlace(object):
         approach = copy.deepcopy(pose)
         # approach with a pose the hover-distance above the requested pose
         approach.position.z = approach.position.z + self._hover_distance
+        print("approach pose: ", approach)
         joint_angles = self._limb.ik_request(approach, self._tip_name)
+        print("Approach joint_angles: ", joint_angles)
         self._limb.set_joint_position_speed(0.001)
         self._guarded_move_to_joint_position(joint_angles)
         self._limb.set_joint_position_speed(0.1)
 
     def _retract(self):
         # retrieve current pose from endpoint
-        current_pose = self._limb.endpoint_pose()
+        current_pose = copy.deepcopy(self._limb.endpoint_pose())
         ik_pose = Pose()
         ik_pose.position.x = current_pose['position'].x
         ik_pose.position.y = current_pose['position'].y
@@ -101,25 +104,31 @@ class PickAndPlace(object):
         ''' An *incredibly simple* linearly-interpolated Cartesian move '''
         r = rospy.Rate(1/(time/steps)) # Defaults to 100Hz command rate
         current_pose = self._limb.endpoint_pose()
-        ik_delta = Pose()
-        ik_delta.position.x = (current_pose['position'].x - pose.position.x) / steps
-        ik_delta.position.y = (current_pose['position'].y - pose.position.y) / steps
-        ik_delta.position.z = (current_pose['position'].z - pose.position.z) / steps
-        ik_delta.orientation.x = (current_pose['orientation'].x - pose.orientation.x) / steps
-        ik_delta.orientation.y = (current_pose['orientation'].y - pose.orientation.y) / steps
-        ik_delta.orientation.z = (current_pose['orientation'].z - pose.orientation.z) / steps
-        ik_delta.orientation.w = (current_pose['orientation'].w - pose.orientation.w) / steps
+        ik_delta = Point()
+        ik_delta.x = (current_pose['position'].x - pose.position.x) / steps
+        ik_delta.y = (current_pose['position'].y - pose.position.y) / steps
+        ik_delta.z = (current_pose['position'].z - pose.position.z) / steps
+        q_current = [current_pose['orientation'].x, 
+                     current_pose['orientation'].y,
+                     current_pose['orientation'].z,
+                     current_pose['orientation'].w]
+        q_pose = [pose.orientation.x,
+                  pose.orientation.y,
+                  pose.orientation.z,
+                  pose.orientation.w]
         for d in range(int(steps), -1, -1):
             if rospy.is_shutdown():
                 return
             ik_step = Pose()
-            ik_step.position.x = d*ik_delta.position.x + pose.position.x
-            ik_step.position.y = d*ik_delta.position.y + pose.position.y
-            ik_step.position.z = d*ik_delta.position.z + pose.position.z
-            ik_step.orientation.x = d*ik_delta.orientation.x + pose.orientation.x
-            ik_step.orientation.y = d*ik_delta.orientation.y + pose.orientation.y
-            ik_step.orientation.z = d*ik_delta.orientation.z + pose.orientation.z
-            ik_step.orientation.w = d*ik_delta.orientation.w + pose.orientation.w
+            ik_step.position.x = d*ik_delta.x + pose.position.x 
+            ik_step.position.y = d*ik_delta.y + pose.position.y
+            ik_step.position.z = d*ik_delta.z + pose.position.z
+            # Perform a proper quaternion interpolation
+            q_slerp = quaternion_slerp(q_current, q_pose, d/steps)
+            ik_step.orientation.x = q_slerp[0]
+            ik_step.orientation.y = q_slerp[1]
+            ik_step.orientation.z = q_slerp[2]
+            ik_step.orientation.w = q_slerp[3]
             joint_angles = self._limb.ik_request(ik_step, self._tip_name)
             if joint_angles:
                 self._limb.set_joint_positions(joint_angles)
@@ -129,6 +138,7 @@ class PickAndPlace(object):
         rospy.sleep(1.0)
 
     def pick(self, pose):
+        print("pick")
         if rospy.is_shutdown():
             return
         # open the gripper
@@ -145,6 +155,7 @@ class PickAndPlace(object):
         self._retract()
 
     def place(self, pose):
+        print("place")
         if rospy.is_shutdown():
             return
         # servo above pose
@@ -178,7 +189,7 @@ def load_gazebo_models(table_pose=Pose(position=Point(x=0.75, y=0.0, z=0.0)),
         spawn_sdf = rospy.ServiceProxy('/gazebo/spawn_sdf_model', SpawnModel)
         resp_sdf = spawn_sdf("cafe_table", table_xml, "/",
                              table_pose, table_reference_frame)
-    except rospy.ServiceException, e:
+    except rospy.ServiceException as e:
         rospy.logerr("Spawn SDF service call failed: {0}".format(e))
     # Spawn Block URDF
     rospy.wait_for_service('/gazebo/spawn_urdf_model')
@@ -186,7 +197,7 @@ def load_gazebo_models(table_pose=Pose(position=Point(x=0.75, y=0.0, z=0.0)),
         spawn_urdf = rospy.ServiceProxy('/gazebo/spawn_urdf_model', SpawnModel)
         resp_urdf = spawn_urdf("block", block_xml, "/",
                                block_pose, block_reference_frame)
-    except rospy.ServiceException, e:
+    except rospy.ServiceException as e:
         rospy.logerr("Spawn URDF service call failed: {0}".format(e))
 
 def delete_gazebo_models():
@@ -198,7 +209,7 @@ def delete_gazebo_models():
         delete_model = rospy.ServiceProxy('/gazebo/delete_model', DeleteModel)
         resp_delete = delete_model("cafe_table")
         resp_delete = delete_model("block")
-    except rospy.ServiceException, e:
+    except rospy.ServiceException as e:
         print("Delete Model service call failed: {0}".format(e))
 
 def main():
