@@ -3,7 +3,7 @@ sawyer_simulator
 
 Gazebo simulation with emulated interfaces for the Sawyer Research Robot. Please follow the tutorial_ on the Rethink Robotics Wiki to get started with Sawyer in Gazebo.
 
-.. _tutorial: http://sdk.rethinkrobotics.com/intera/Gazebo_Tutorial
+.. _tutorial: https://support.rethinkrobotics.com/support/solutions/articles/80000980381-gazebo-tutorial
 
 .. image:: sawyer_gazebo/etc/sawyer_gazebo.gif
 
@@ -11,7 +11,7 @@ Code & Tickets
 --------------
 
 +-----------------+----------------------------------------------------------------------------------+
-| Documentation   | http://sdk.rethinkrobotics.com/intera                                            |
+| Documentation   | https://support.rethinkrobotics.com/support/home                                 |
 +-----------------+----------------------------------------------------------------------------------+
 | Issues          | https://github.com/RethinkRobotics/sawyer_simulator/issues                       |
 +-----------------+----------------------------------------------------------------------------------+
@@ -52,4 +52,4 @@ Other Sawyer Repositories
 Latest Release Information
 --------------------------
 
-http://sdk.rethinkrobotics.com/intera/Release-Changes
+https://support.rethinkrobotics.com/support/solutions/folders/80000687452
